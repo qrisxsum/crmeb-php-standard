@@ -1,0 +1,74 @@
+# IDE & Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Operating System Files
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+.directory
+*~
+
+# Logs & Documentation & Temporary Files
+*.log
+temp/
+docs/
+
+# Environment & Configuration
+# Environment files (contain sensitive data)
+.env
+!.env.example
+
+# PHP Backend
+# Runtime files
+/crmeb/runtime/
+/crmeb/public/install.lock
+/crmeb/.constant
+/crmeb/.version
+
+# Frontend Build Outputs
+# H5 build output
+/crmeb/public/index.html
+/crmeb/public/static/
+/crmeb/public/assets/
+/crmeb/public/pages/
+
+# PC template (Nuxt.js)
+/crmeb/public/home/
+
+# Admin template
+/template/admin/dist/
+/template/admin/node_modules/
+
+# Uni-app template
+/template/uni-app/node_modules/
+/template/uni-app/unpackage/
+/template/uni-app/.hbuilderx/
+
+# Docker
+# MySQL
+/docker-compose/mysql/data/
+/docker-compose/mysql/log/
+/docker-compose/MacArm/mysql/data/
+/docker-compose/MacArm/mysql/log/
+/docker-compose/linux/mysql/data/
+/docker-compose/linux/mysql/log/
+/docker-compose/window/mysql/data/
+/docker-compose/window/mysql/log/
+
+# Nginx
+/docker-compose/nginx/log/
