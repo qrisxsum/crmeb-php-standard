@@ -3,6 +3,7 @@
 		<goodsCate1 v-if="category == 1" ref="classOne" :isNew="isNew"></goodsCate1>
 		<goodsCate2 v-if="category == 2" ref="classTwo" :isNew="isNew" @jumpIndex="jumpIndex"></goodsCate2>
 		<goodsCate3 v-if="category == 3" ref="classThree" :isNew="isNew" @jumpIndex="jumpIndex"></goodsCate3>
+		<goodsCate4 v-if="category == 4" ref="classFour" :isNew="isNew" @jumpIndex="jumpIndex"></goodsCate4>
 		<pageFooter v-if="category == 1" @newDataStatus="newDataStatus" v-show="showBar"></pageFooter>
 	</view>
 </template>
@@ -12,6 +13,7 @@ import colors from '@/mixins/color';
 import goodsCate1 from './goods_cate1';
 import goodsCate2 from './goods_cate2';
 import goodsCate3 from './goods_cate3';
+import goodsCate4 from './goods_cate4';
 import { colorChange } from '@/api/api.js';
 import { mapGetters } from 'vuex';
 import { getCategoryVersion } from '@/api/public.js';
@@ -22,6 +24,7 @@ export default {
 		goodsCate1,
 		goodsCate2,
 		goodsCate3,
+		goodsCate4,
 		pageFooter
 	},
 	mixins: [colors],
@@ -69,8 +72,13 @@ export default {
 				uni.setStorageSync('is_diy', res.data.is_diy);
 				this.$nextTick((e) => {
 					if (status == 2 || status == 3) {
+						// 样式2和3隐藏 tabBar
 						uni.hideTabBar();
+					} else if (status == 4) {
+						// 样式4显示 tabBar
+						uni.showTabBar();
 					} else {
+						// 样式1根据配置决定
 						this.$refs.classOne.is_diy = res.data.is_diy;
 						if (!this.is_diy) {
 							uni.hideTabBar();
@@ -93,7 +101,7 @@ export default {
 };
 </script>
 <style scoped lang="scss">
-/deep/.mask {
+::v-deep .mask {
 	z-index: 99;
 }
 ::-webkit-scrollbar {
