@@ -118,4 +118,29 @@ class StoreProductAttrValueDao extends BaseDao
     {
         return $this->search(['unique' => $unique, 'type' => 4])->field($field)->with(['storeIntegral'])->find();
     }
+
+    /**
+     * 批量获取多规格商品的最高价格
+     * @param array $productIds
+     * @return array [product_id => max_price]
+     */
+    public function getMaxPriceByProductIds(array $productIds)
+    {
+        if (empty($productIds)) {
+            return [];
+        }
+        $result = $this->getModel()
+            ->whereIn('product_id', $productIds)
+            ->where('type', 0)
+            ->field('product_id, MAX(price) as max_price')
+            ->group('product_id')
+            ->select()
+            ->toArray();
+
+        $data = [];
+        foreach ($result as $item) {
+            $data[$item['product_id']] = $item['max_price'];
+        }
+        return $data;
+    }
 }

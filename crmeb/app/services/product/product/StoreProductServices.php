@@ -1236,6 +1236,25 @@ class StoreProductServices extends BaseServices
                 return $labelList[$labelId] ?? [];
             }, explode(',', $item['label_list'])) : [];
         }
+
+        // 获取多规格商品的价格区间（max_price）
+        $multiSpecProductIds = array_column(array_filter($list, function($item) {
+            return $item['spec_type'] == 1;
+        }), 'id');
+        $maxPriceList = [];
+        if (!empty($multiSpecProductIds)) {
+            /** @var StoreProductAttrValueServices $attrValueServices */
+            $attrValueServices = app()->make(StoreProductAttrValueServices::class);
+            $maxPriceList = $attrValueServices->getMaxPriceByProductIds($multiSpecProductIds);
+        }
+        // 为每个商品添加 max_price 字段
+        foreach ($list as &$item) {
+            $item['max_price'] = ($item['spec_type'] == 1 && isset($maxPriceList[$item['id']]))
+                ? $maxPriceList[$item['id']]
+                : $item['price'];
+        }
+        unset($item);
+
         $list = $this->getActivityList($list);
         $list = $this->getProduceOtherList($list, $uid, !!$where['type']);
         return $list;
