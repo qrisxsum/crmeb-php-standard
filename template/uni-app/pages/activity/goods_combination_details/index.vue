@@ -1675,7 +1675,7 @@
 		margin-top: 10rpx;
 	}
 
-	/deep/.mask {
+	::v-deep .mask {
 		z-index: 99 !important;
 	}
 

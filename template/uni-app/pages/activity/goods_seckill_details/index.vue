@@ -1267,7 +1267,7 @@ export default {
 	box-sizing: border-box;
 }
 
-.product-con .nav /deep/.time .styleAll {
+.product-con .nav ::v-deep .time .styleAll {
 	padding: 0 6rpx;
 	font-size: 22rpx;
 	color: var(--view-theme);
@@ -1491,7 +1491,7 @@ export default {
 	margin-top: 10rpx;
 }
 
-/deep/.mask {
+::v-deep .mask {
 	z-index: 99 !important;
 }
 

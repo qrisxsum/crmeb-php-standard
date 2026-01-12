@@ -634,7 +634,7 @@
 		}
 
 		.advertItem02 {
-			// /deep/uni-image>img{
+			// ::v-deep uni-image>img{
 			// 	position: unset;
 			// }
 			width: 100%;
