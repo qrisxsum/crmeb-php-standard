@@ -241,4 +241,14 @@ class StoreProductAttrValueServices extends BaseServices
         }
         return $stock;
     }
+
+    /**
+     * 批量获取多规格商品的最高价格
+     * @param array $productIds
+     * @return array
+     */
+    public function getMaxPriceByProductIds(array $productIds)
+    {
+        return $this->dao->getMaxPriceByProductIds($productIds);
+    }
 }
