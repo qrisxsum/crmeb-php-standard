@@ -32,6 +32,7 @@ docs/
 # Environment files (contain sensitive data)
 .env
 !.env.example
+!crmeb/public/install/.env
 
 # PHP Backend
 # Runtime files
