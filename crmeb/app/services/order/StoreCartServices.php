@@ -558,7 +558,22 @@ class StoreCartServices extends BaseServices
                 $count = array_sum(array_column($cartList, 'cart_num'));
             }
         }
-        return compact('count', 'ids', 'sum_price');
+
+        // === 新增：计算总税额 ===
+        $tax_total = 0;
+        /** @var TaxCalculationServices $taxServices */
+        $taxServices = app()->make(TaxCalculationServices::class);
+
+        if ($taxServices->isTaxEnabled()) {
+            foreach ($cartList as $item) {
+                $taxInfo = $taxServices->calculateTaxFromIncludedPrice($item['truePrice']);
+                $itemTax = bcmul((string)$taxInfo['tax_amount'], (string)$item['cart_num'], 2);
+                $tax_total = bcadd((string)$tax_total, (string)$itemTax, 2);
+            }
+        }
+        // === 税费计算结束 ===
+
+        return compact('count', 'ids', 'sum_price', 'tax_total');
     }
 
     /**
@@ -704,6 +719,20 @@ class StoreCartServices extends BaseServices
             }
             unset($item['attrInfo']);
         }
+
+        // === 新增：税费计算 ===
+        /** @var TaxCalculationServices $taxServices */
+        $taxServices = app()->make(TaxCalculationServices::class);
+
+        if ($taxServices->isTaxEnabled()) {
+            $validWithTax = [];
+            foreach ($valid as $item) {
+                $validWithTax[] = $taxServices->calculateCartItemTax($item);
+            }
+            $valid = $validWithTax;
+        }
+        // === 税费计算结束 ===
+
         return [$cartList, $valid, $invalid];
     }
 
