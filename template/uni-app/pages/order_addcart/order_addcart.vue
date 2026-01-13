@@ -46,7 +46,14 @@
 											{{ item.productInfo.store_name }}
 										</view>
 										<view class="infor line1" v-if="item.productInfo.attrInfo">{{ $t(`属性`) }}：{{ item.productInfo.attrInfo.suk }}</view>
-										<view class="money" v-if="item.attrStatus">{{ $t(`￥`) }}{{ item.truePrice }}</view>
+										<view class="money" v-if="item.attrStatus">
+											{{ $t(`￥`) }}{{ item.truePrice }}
+											<!-- 税额明细 -->
+											<view class="tax-info" v-if="taxSummary.tax_enabled && item.tax_unit_price">
+												<text class="tax-label">{{ $t(`税込`) }}</text>
+												<text class="tax-amount">{{ $t(`うち消費税`) }}￥{{ item.tax_unit_price }}</text>
+											</view>
+										</view>
 										<view class="reElection acea-row row-between-wrapper" v-else>
 											<view class="title">{{ $t(`请重新选择商品规格`) }}</view>
 											<view class="reBnt cart-color acea-row row-center-wrapper" @click.stop="reElection(item)">{{ $t(`重选`) }}</view>
@@ -120,7 +127,19 @@
 					</checkbox-group>
 				</view>
 				<view class="money acea-row row-middle" v-if="footerswitch == true">
-					<text class="font-color">{{ $t(`￥`) }}{{ selectCountPrice }}</text>
+					<!-- 价格汇总区域 -->
+					<view class="price-summary">
+						<!-- 总价 -->
+						<view class="total-price">
+							<text class="font-color">{{ $t(`合計`) }}</text>
+							<text class="font-color price-value">{{ $t(`￥`) }}{{ selectCountPrice }}</text>
+						</view>
+						<!-- 税额明细 -->
+						<view class="tax-detail" v-if="taxSummary.tax_enabled">
+							<text class="tax-text">{{ $t(`（うち消費税`) }}￥{{ taxSummary.tax_total }}{{ $t(`）`) }}</text>
+						</view>
+					</view>
+
 					<form @submit="subOrder">
 						<button class="placeOrder bg-color" formType="submit">{{ $t(`立即下单`) }}</button>
 					</form>
@@ -158,11 +177,9 @@
 </template>
 
 <script>
+let sysHeight = '0px';
 // #ifdef APP-PLUS
-let sysHeight = uni.getSystemInfoSync().statusBarHeight + 'px';
-// #endif
-// #ifndef APP-PLUS
-let sysHeight = 0;
+sysHeight = uni.getSystemInfoSync().statusBarHeight + 'px';
 // #endif
 import { getCartList, getCartCounts, changeCartNum, cartDel, getResetCart } from '@/api/order.js';
 import { getProductHot, collectAll, getProductDetail } from '@/api/store.js';
@@ -237,7 +254,12 @@ export default {
 			adding: false,
 			disabledChangeNumber: false,
 			isFooter: false,
-			pdHeight:0 //自定义底部导航上下边距和
+			pdHeight:0, //自定义底部导航上下边距和
+			taxSummary: {
+				tax_total: 0,      // 购物车总税额
+				tax_rate: 10,      // 税率百分比
+				tax_enabled: true  // 是否启用税费
+			}
 		};
 	},
 	computed: mapGetters(['isLogin']),
@@ -643,15 +665,24 @@ export default {
 			let validList = that.cartList.valid;
 			let selectValue = that.selectValue;
 			let selectCountPrice = 0.0;
+			let selectTaxTotal = 0.0; // === 新增：选中商品税额总计 ===
+
 			if (selectValue.length < 1) {
 				that.selectCountPrice = selectCountPrice;
+				that.taxSummary.tax_total = 0; // === 新增 ===
 			} else {
 				for (let index in validList) {
 					if (that.inArray(validList[index].id, selectValue)) {
 						selectCountPrice = that.$util.$h.Add(selectCountPrice, that.$util.$h.Mul(validList[index].cart_num, validList[index].truePrice));
+
+						// === 税额：使用实时数量计算（避免 tax_item_total 因数量变更而过期） ===
+						if (that.taxSummary.tax_enabled && validList[index].tax_unit_price !== undefined && validList[index].tax_unit_price !== null) {
+							selectTaxTotal = that.$util.$h.Add(selectTaxTotal, that.$util.$h.Mul(validList[index].cart_num, validList[index].tax_unit_price));
+						}
 					}
 				}
 				that.selectCountPrice = selectCountPrice;
+				that.taxSummary.tax_total = selectTaxTotal;
 			}
 		},
 		/**
@@ -843,6 +874,13 @@ export default {
 				}
 				for (let i = 0; i < Math.ceil(c.data.ids.length / that.limit); i++) {
 					let cartList = await this.getCartData(data);
+
+					// === 新增：提取税额汇总 ===
+					if (cartList.tax_summary) {
+						this.taxSummary = cartList.tax_summary;
+					}
+					// ===
+
 					data.page = data.page + 1;
 					let valid = cartList.valid;
 					let validList = that.$util.SplitArray(valid, that.cartList.valid);
@@ -1018,14 +1056,6 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.shoppingCart {
-	/* #ifdef H5 */
-	// padding-bottom: 0;
-	// padding-bottom: constant(safe-area-inset-bottom);
-	// padding-bottom: env(safe-area-inset-bottom);
-	/* #endif */
-}
-
 .shoppingCart .labelNav {
 	height: 76rpx;
 	padding: 0 30rpx;
@@ -1356,5 +1386,65 @@ export default {
 		width: 414rpx;
 		height: 304rpx;
 	}
+}
+
+/* 商品税额信息样式 */
+.tax-info {
+	display: flex;
+	flex-direction: column;
+	margin-top: 8rpx;
+	font-size: 22rpx;
+	color: #666;
+}
+
+.tax-info .tax-label {
+	display: inline-block;
+	padding: 2rpx 8rpx;
+	background-color: #f0f0f0;
+	border-radius: 4rpx;
+	margin-right: 8rpx;
+	font-size: 20rpx;
+	color: #666;
+}
+
+.tax-info .tax-amount {
+	margin-top: 4rpx;
+	color: #999;
+}
+
+/* 底部价格汇总样式 */
+.price-summary {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	margin-right: 20rpx;
+}
+
+.price-summary .total-price {
+	display: flex;
+	align-items: baseline;
+	font-size: 30rpx;
+}
+
+.price-summary .total-price .price-value {
+	font-size: 36rpx;
+	font-weight: bold;
+	margin-left: 8rpx;
+}
+
+.price-summary .tax-detail {
+	margin-top: 4rpx;
+}
+
+.price-summary .tax-detail .tax-text {
+	font-size: 22rpx;
+	color: #888;
+}
+
+/* Footer高度自适应 */
+.shoppingCart .footer {
+	height: auto;
+	min-height: 96rpx;
+	padding: 12rpx 30rpx;
 }
 </style>

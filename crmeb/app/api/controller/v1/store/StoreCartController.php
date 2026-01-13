@@ -41,7 +41,29 @@ class StoreCartController
         [$status] = $request->postMore([
             ['status', 1],//购物车商品状态
         ], true);
-        return app('json')->success($this->services->getUserCartList($request->uid(), $status));
+
+        $cartInfo = $this->services->getUserCartList($request->uid(), $status);
+
+        // === 新增：税额汇总信息 ===
+        /** @var \app\services\order\TaxCalculationServices $taxServices */
+        $taxServices = app()->make(\app\services\order\TaxCalculationServices::class);
+
+        $taxSummary = [
+            'tax_total' => 0,
+            'tax_rate' => $taxServices->getTaxRate() * 100,
+            'tax_enabled' => $taxServices->isTaxEnabled()
+        ];
+
+        if ($taxServices->isTaxEnabled() && !empty($cartInfo['valid'])) {
+            $result = $taxServices->calculateCartTaxTotal($cartInfo['valid']);
+            $taxSummary['tax_total'] = $result['tax_total'];
+            $cartInfo['valid'] = $result['items'];
+        }
+
+        $cartInfo['tax_summary'] = $taxSummary;
+        // === 税额汇总结束 ===
+
+        return app('json')->success($cartInfo);
     }
 
     /**
