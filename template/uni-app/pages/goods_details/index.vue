@@ -154,24 +154,20 @@
 								</view>
 							</view>
 						</view>
-						<view class="attribute acea-row row-between-wrapper" @click="selecAttr" v-if="attr.productAttr.length">
-							<view class="flex justify-between">
-								<view style="display: flex; align-items: center; width: 90%">
-									<view class="attr-txt">{{ attrTxt }}：</view>
-									<view class="atterTxt line1" style="width: 82%">{{ attrValue }}</view>
-								</view>
-								<view class="iconfont icon-jiantou"></view>
-							</view>
-							<view class="acea-row row-between-wrapper attr-pics" v-if="skuArr.length">
-								<view class="flexs" v-show="storeInfo.attrPics.length">
-									<image :src="item" v-for="(item, index) in storeInfo.attrPics.slice(0, 4)" :key="index" class="attrImg"></image>
-								</view>
-								<view class="flexs" v-show="!storeInfo.attrPics.length">
-									<image :src="item.image" v-for="(item, index) in skuArr.slice(0, 4)" :key="index" class="attrImg"></image>
-								</view>
-								<view class="switchTxt">{{ $t(`共`) }}{{ skuArr.length }} {{ $t(`种规格可选`) }}</view>
-							</view>
-						</view>
+						<!-- Inline Specification Display -->
+						<specSelector
+							v-if="attr.productAttr.length"
+							:attr="attr"
+							:showQuantity="!storeInfo.is_virtual"
+							:minQty="storeInfo.min_qty || 1"
+							:limitNum="storeInfo.limit_num || 0"
+							:unitName="storeInfo.unit_name || ''"
+							type=""
+							@attrVal="attrVal"
+							@ChangeAttr="ChangeAttr"
+							@ChangeCartNum="ChangeCartNum"
+							@iptCartNum="iptCartNum"
+						/>
 						<!-- 参数 -->
 						<view
 							v-if="(storeInfo.params_list && storeInfo.params_list.length) || (storeInfo.protection_list && storeInfo.protection_list.length)"
@@ -370,7 +366,8 @@
 				:showAnimate="showAnimate"
 				@boxStatus="boxStatus"
 			></shareRedPackets>
-			<!-- 组件 -->
+		<!-- Inline specSelector replaces productWindow modal -->
+		<!--
 			<productWindow
 				:attr="attr"
 				:isShow="1"
@@ -387,7 +384,7 @@
 				:is_vip="is_vip"
 				@getImg="showImg"
 				:is_virtual="storeInfo.is_virtual"
-			></productWindow>
+			><!-- </productWindow> -->
 			<cus-previewImg ref="cusPreviewImg" :list="skuArr" @changeSwitch="changeSwitch" @shareFriend="listenerActionSheet" />
 			<swiperPrevie ref="cusSwiperImg" :list="storeInfo.slider_image"></swiperPrevie>
 			<couponListWindow
@@ -494,6 +491,7 @@ import swiperPrevie from '@/components/cusPreviewImg/swiperPrevie.vue';
 import productConSwiper from '@/components/productConSwiper';
 import couponListWindow from '@/components/couponListWindow';
 import productWindow from '@/components/productWindow';
+import specSelector from '@/components/specSelector/index.vue';
 import userEvaluation from '@/components/userEvaluation';
 import shareRedPackets from '@/components/shareRedPackets';
 import kefuIcon from '@/components/kefuIcon';
@@ -519,6 +517,7 @@ export default {
 		productConSwiper,
 		couponListWindow,
 		productWindow,
+		specSelector,
 		userEvaluation,
 		shareRedPackets,
 		kefuIcon,
@@ -1392,14 +1391,14 @@ export default {
 		/**
 		 * 打开属性插件
 		 */
-		selecAttr: function () {
-			this.$refs.proSwiper.videoIsPause();
-			this.$set(this.attr, 'cartAttr', true);
-			this.$set(this, 'isOpen', true);
-		},
-		openModal(ref) {
-			this.$refs[ref].isShow = true;
-		},
+// 		selecAttr: function () {
+// 			this.$refs.proSwiper.videoIsPause();
+// 			this.$set(this.attr, 'cartAttr', true);
+// 			this.$set(this, 'isOpen', true);
+// 		},
+// 		openModal(ref) {
+// 			this.$refs[ref].isShow = true;
+// 		},
 		/**
 		 * 打开优惠券插件
 		 */

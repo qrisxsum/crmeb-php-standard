@@ -64,7 +64,7 @@
             <i class="el-icon-error btndel" v-db-click @click="handleRemove(index)"></i>
           </div>
           <div
-            v-if="formValidate.slider_image.length < 10"
+            v-if="formValidate.slider_image.length < 20"
             class="upLoad acea-row row-center-wrapper"
             v-db-click
             @click="modalPicTap('duo')"
@@ -74,7 +74,7 @@
           <el-input v-model="formValidate.slider_image[0]" style="display: none"></el-input>
         </div>
 
-        <div class="tips-info">建议尺寸：800*800，可拖拽改变图片顺序，默认首张图为主图，最多上传10张</div>
+        <div class="tips-info">建议尺寸：800*800，可拖拽改变图片顺序，默认首张图为主图，最多上传20张</div>
 
         <!-- <div class="tips">(最多10张<br />750*750)</div> -->
       </el-form-item>
