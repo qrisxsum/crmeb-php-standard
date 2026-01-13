@@ -93,30 +93,20 @@
 							</view>
 						</view>
 					</view>
-					<view class="attribute acea-row row-between-wrapper" @click="selecAttr"
-						v-if="attr.productAttr.length">
-						<!-- <view style="display: flex; align-items: center; width: 90%;">
-							{{ attrTxt }}：
-							<view class="atterTxt line1" style="width: 82%;">{{ attrValue }}</view>
-						</view>
-						<view class="iconfont icon-jiantou"></view> -->
-						<view class="flex">
-							<view style="display: flex; align-items: center; width: 90%">
-								<view class="attr-txt"> {{ attrTxt }}： </view>
-								<view class="atterTxt line1" style="width: 82%">{{
-						      attrValue
-						    }}</view>
-							</view>
-							<view class="iconfont icon-jiantou"></view>
-						</view>
-						<view class="acea-row row-between-wrapper" style="margin-top: 7px; padding-left: 70px"
-							v-if="skuArr.length > 1">
-							<view class="flexs">
-								<image :src="item.image" v-for="(item, index) in skuArr.slice(0, 4)" :key="index"
-									class="attrImg"></image>
-							</view>
-							<view class="switchTxt">{{$t(`共`)}}{{ skuArr.length }}{{$t(`种规格可选`)}}</view>
-						</view>
+				<!-- Inline Specification Display -->
+				<specSelector
+					v-if="attr.productAttr.length"
+					:attr="attr"
+					:showQuantity="true"
+					:minQty="storeInfo.min_qty || 1"
+					:limitNum="0"
+					:unitName="storeInfo.unit_name || ''"
+					type="presell"
+					@attrVal="attrVal"
+					@ChangeAttr="ChangeAttr"
+					@ChangeCartNum="ChangeCartNum"
+					@iptCartNum="iptCartNum"
+				/>
 					</view>
 				</view>
 				<view class="userEvaluation" id="past1">
@@ -175,9 +165,9 @@
 		<!-- 		<shareRedPackets :sharePacket="sharePacket" @listenerActionSheet="listenerActionSheet"
 			@closeChange="closeChange"></shareRedPackets> -->
 		<!-- 组件 -->
-		<productWindow :attr="attr" :isShow="0" :limitNum="1" :iSplus="1" @myevent="onMyEvent" @ChangeAttr="ChangeAttr"
+		<!-- <productWindow :attr="attr" :isShow="0" :limitNum="1" :iSplus="1" @myevent="onMyEvent" @ChangeAttr="ChangeAttr"
 			@ChangeCartNum="ChangeCartNum" @attrVal="attrVal" @iptCartNum="iptCartNum" id="product-window"
-			:is_vip="is_vip" @getImg="showImg"></productWindow>
+			:is_vip="is_vip" @getImg="showImg"></productWindow> -->
 		<cus-previewImg ref="cusPreviewImg" :list="skuArr" @changeSwitch="changeSwitch"
 			@shareFriend="listenerActionSheet" />
 		<couponListWindow :coupon="coupon" v-if="coupon" @ChangCouponsClone="ChangCouponsClone"
@@ -262,7 +252,8 @@
 	} from '@/api/public';
 	import productConSwiper from '@/components/productConSwiper';
 	import couponListWindow from '@/components/couponListWindow';
-	import productWindow from '@/components/productWindow';
+	// import productWindow from '@/components/productWindow'; // 已改为内嵌式规格选择，不再使用弹窗
+	import specSelector from '@/components/specSelector/index.vue';
 	import userEvaluation from '@/components/userEvaluation';
 	import shareRedPackets from '@/components/shareRedPackets';
 	import kefuIcon from '@/components/kefuIcon';
@@ -279,7 +270,8 @@
 		components: {
 			productConSwiper,
 			couponListWindow,
-			productWindow,
+			specSelector,
+			// productWindow, // 已改为内嵌式规格选择，不再使用弹窗
 			userEvaluation,
 			shareRedPackets,
 			kefuIcon,
@@ -950,9 +942,9 @@
 			/**
 			 * 打开属性插件
 			 */
-			selecAttr: function() {
-				this.$set(this.attr, 'cartAttr', true);
-				this.$set(this, 'isOpen', true);
+// 			selecAttr: function() {
+// 				this.$set(this.attr, 'cartAttr', true);
+// 				this.$set(this, 'isOpen', true);
 			},
 			/**
 			 * 打开优惠券插件
