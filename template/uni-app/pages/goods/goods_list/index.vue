@@ -38,8 +38,19 @@
 				<!-- down -->
 				<view class='item' :class='nows ? "font-color":""' @click='set_where(4)'>{{$t(`新品`)}}</view>
 			</view>
-			<scroll-view :scroll-top="scrollTop" scroll-y="true" class="scroll-Y" @scroll="scroll"
-				@scrolltolower="scrolltolower">
+			<scroll-view :scroll-top="scrollTop" scroll-y="true" class="scroll-Y" @scroll="scroll">
+				<!-- 分页按钮 - 顶部 -->
+				<view class="pagination-top" v-if="productList.length > 0">
+					<view class="pagination-button pagination-nav" @click="prevPage" :class="{ disabled: where.page <= 1 }">
+						< {{$t(`上一页`)}}
+					</view>
+					<view class="page-info">
+						{{$t(`第`)}} {{where.page}} {{$t(`页`)}}
+					</view>
+					<view class="pagination-button pagination-nav" @click="nextPage" :class="{ disabled: loadend || where.page >= maxPage }">
+						{{$t(`下一页`)}} >
+					</view>
+				</view>
 				<!-- 列表视图 viewMode === 0 -->
 				<view class="list list-view" v-if="viewMode === 0">
 					<view class="item" v-for="(item,index) in productList" :key="index" @click="godDetail(item)">
@@ -107,10 +118,42 @@
 					</view>
 				</view>
 
-				<!-- 加载更多 -->
-				<view class="loadingicon acea-row row-center-wrapper" v-if="productList.length > 0">
-					<text class="loading iconfont icon-jiazai" :hidden="loading==false"></text>{{loadTitle}}
+
+			<!-- 分页按钮 - 底部 -->
+			<view class="pagination-bottom" v-if="productList.length > 0">
+				<!-- 第一行：分页按钮和页码 -->
+				<view class="pagination-row pagination-row-top">
+					<view class="pagination-button pagination-nav" @click="goToFirstPage" :class="{ disabled: where.page <= 1 }">
+						««
+					</view>
+					<view class="page-numbers">
+						<view 
+							class="page-number" 
+							v-for="page in pageNumbers" 
+							:key="page"
+							:class="{ active: page === where.page }"
+							@click="goToPageNumber(page)"
+						>
+							{{page}}
+						</view>
+					</view>
+					<view class="pagination-button pagination-nav" @click="goToLastPage" :class="{ disabled: loadend || where.page >= maxPage }">
+						»»
+					</view>
 				</view>
+				<!-- 第二行：跳转框 -->
+				<view class="pagination-row pagination-row-bottom">
+					<view class="page-jump">
+						<input type="number" v-model="jumpPage" class="jump-input"></input>
+						<view class="jump-button" @click="goToPage">{{$t(`跳转`)}}</view>
+					</view>
+				</view>
+			</view>
+
+			<!-- 加载状态 -->
+			<view class="loadingicon acea-row row-center-wrapper" v-if="loading">
+				<text class="loading iconfont icon-jiazai"></text>{{$t(`加载中...`)}}
+			</view>
 
 			</scroll-view>
 
@@ -149,7 +192,46 @@
 	} from '@/config/app';
 	import colors from '@/mixins/color.js';
 	export default {
-		computed: mapGetters(['uid']),
+		computed: {
+			...mapGetters(['uid']),
+			// 生成页码数组，显示当前页附近的页码
+			pageNumbers() {
+				const current = this.where.page;
+				const total = this.maxPage;
+				const pages = [];
+				const showPages = 5; // 显示5个页码按钮
+				
+				if (total <= showPages) {
+					// 如果总页数少于等于5，显示所有页码
+					for (let i = 1; i <= total; i++) {
+						pages.push(i);
+					}
+				} else {
+					// 计算起始页码：当前页居中显示
+					let start = current - Math.floor(showPages / 2);
+					let end = start + showPages - 1;
+					
+					// 如果起始页码小于1，从1开始
+					if (start < 1) {
+						start = 1;
+						end = showPages;
+					}
+					
+					// 如果结束页码超过总页数，调整起始页码
+					if (end > total) {
+						end = total;
+						start = total - showPages + 1;
+					}
+					
+					// 确保总是显示5个页码
+					for (let i = start; i <= end; i++) {
+						pages.push(i);
+					}
+				}
+				
+				return pages;
+			}
+		},
 		components: {
 			recommend,
 			home
@@ -167,7 +249,7 @@
 					salesOrder: '',
 					news: 0,
 					page: 1,
-					limit: 20,
+					limit: 10,
 					cid: 0,
 				},
 				price: 0,
@@ -185,7 +267,9 @@
 				old: {
 					scrollTop: 0
 				},
-				scrollTopShow: false
+				scrollTopShow: false,
+				jumpPage: '',
+				maxPage: 1
 			};
 		},
 		onLoad: function(options) {
@@ -294,53 +378,119 @@
 				this.where.news = this.nows ? 1 : 0;
 			},
 			//查找产品
-			get_product_list: function(isPage) {
-				let that = this;
-				that.setWhere();
-				if (that.loadend) return;
-				if (that.loading) return;
-				if (isPage === true) that.$set(that, 'productList', []);
-				that.loading = true;
-				that.loadTitle = '';
-				getProductslist(that.where).then(res => {
-					let list = res.data;
-					let productList = that.$util.SplitArray(list, that.productList);
-					let loadend = list.length < that.where.limit;
-					that.loadend = loadend;
-					that.loading = false;
-					that.loadTitle = loadend ? that.$t(`没有更多内容啦~`) : that.$t(`加载更多`);
-					that.$set(that, 'productList', productList);
-					that.$set(that.where, 'page', that.where.page + 1);
-					if (!that.productList.length) this.get_host_product();
-				}).catch(err => {
-					that.loading = false;
-					that.loadTitle = that.$t(`加载更多`);
-				});
-			},
-			scrolltolower() {
-				if (this.productList.length > 0) {
-					this.get_product_list();
-					uni.$emit('scroll');
+		get_product_list: function(isPage, needScrollTop) {
+			let that = this;
+			that.setWhere();
+			if (that.loading) return;
+			that.loading = true;
+			getProductslist(that.where).then(res => {
+				let list = res.data;
+				let loadend = list.length < that.where.limit;
+				that.loadend = loadend;
+				that.loading = false;
+				that.$set(that, 'productList', list);
+				
+				// 计算最大页数
+				if (list.length > 0) {
+					// 如果返回的数据长度等于limit，说明可能还有更多页
+					if (list.length === that.where.limit) {
+						// 至少还有一页，所以最大页数至少是当前页+1
+						that.maxPage = that.where.page + 1;
+					} else {
+						// 返回的数据长度小于limit，说明这是最后一页
+						that.maxPage = that.where.page;
+					}
 				} else {
-					this.get_host_product();
-					uni.$emit('scroll');
+					// 如果没有数据，设置为当前页
+					that.maxPage = that.where.page;
 				}
-			}
+				
+				if (!that.productList.length) this.get_host_product();
+				// 数据加载完成后再滚动到顶部
+				if (needScrollTop) {
+					that.scrollToTop();
+				}
+			}).catch(err => {
+				that.loading = false;
+			});
 		},
-		onPullDownRefresh() {},
-		onReachBottom() {},
-		// 滚动监听
-		onPageScroll(e) {
-			// 传入scrollTop值并触发所有easy-loadimage组件下的滚动监听事件
-			uni.$emit('scroll');
-		},
+	//上一页
+	prevPage: function() {
+		if (this.where.page <= 1) return;
+		this.where.page--;
+		this.get_product_list(false, true);
+	},
+	//下一页
+	nextPage: function() {
+		if (this.loadend) return;
+		this.where.page++;
+		this.get_product_list(false, true);
+	},
+	//页码跳转（通过输入框）
+	goToPage: function() {
+		let page = parseInt(this.jumpPage);
+		if (!page || page < 1) {
+			uni.showToast({
+				title: this.$t(`请输入有效的页码`),
+				icon: 'none'
+			});
+			return;
+		}
+		if (page > this.maxPage && this.loadend) {
+			uni.showToast({
+				title: this.$t(`页码超出范围，最多${this.maxPage}页`),
+				icon: 'none'
+			});
+			return;
+		}
+		this.where.page = page;
+		this.jumpPage = '';
+		this.get_product_list(false, true);
+	},
+	//点击页码按钮跳转
+	goToPageNumber: function(page) {
+		if (page === this.where.page) return;
+		this.where.page = page;
+		this.get_product_list(false, true);
+	},
+	//跳转到首页
+	goToFirstPage: function() {
+		if (this.where.page <= 1) return;
+		this.where.page = 1;
+		this.get_product_list(false, true);
+	},
+	//跳转到末页
+	goToLastPage: function() {
+		if (this.loadend || this.where.page >= this.maxPage) return;
+		this.where.page = this.maxPage;
+		this.get_product_list(false, true);
+	},
+	//滚动到顶部
+	scrollToTop: function() {
+		// 在uni-app的scroll-view中，需要改变scrollTop值才能触发滚动
+		// 使用时间戳确保值发生变化
+		this.scrollTop = Date.now();
+		this.$nextTick(() => {
+			this.scrollTop = 0;
+			this.old.scrollTop = 0;
+		});
 	}
+	},
+	onPullDownRefresh() {},
+	onReachBottom() {},
+	// 滚动监听
+	onPageScroll(e) {
+		// 传入scrollTop值并触发所有easy-loadimage组件下的滚动监听事件
+		uni.$emit('scroll');
+	}
+}
 </script>
 
 <style scoped lang="scss">
 	.scroll-Y {
-		margin-top: 86rpx;
-		height: calc(100vh - 43rpx);
+		margin-top: 172rpx;
+		height: calc(100vh - 172rpx);
+		padding-top: 0;
 	}
 
 	.wrapper {
@@ -433,7 +583,7 @@
 
 	.productList .list {
 		padding: 0 20rpx 30rpx 20rpx;
-		margin-top: 86rpx;
+		margin-top: 0;
 	}
 
 	.productList .list.on {
@@ -776,5 +926,160 @@
 		font-size: 24rpx;
 		color: #999;
 		padding: 20rpx 0;
+	}
+
+	/* 分页样式 */
+	.pagination-top {
+		display: flex;
+		align-items: center;
+		justify-content: space-around;
+		padding: 20rpx;
+		background: #fff;
+		border-bottom: 1rpx solid #f0f0f0;
+		margin-bottom: 10rpx;
+	}
+
+	.pagination-bottom {
+		display: flex;
+		flex-direction: column;
+		background: #fff;
+		border-top: 1rpx solid #f0f0f0;
+		margin-top: 20rpx;
+		padding: 20rpx 0;
+	}
+
+	.pagination-row {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+	}
+
+	.pagination-row-top {
+		margin-bottom: 20rpx;
+	}
+
+	.pagination-row-bottom {
+		padding: 0 20rpx;
+	}
+
+	.pagination-nav {
+		padding: 10rpx 20rpx;
+		border: none;
+		border-radius: 8rpx;
+		font-size: 24rpx;
+		color: #fff;
+		background: linear-gradient(135deg, #e93323 0%, #d42a1a 100%);
+		cursor: pointer;
+		transition: all 0.3s;
+		box-shadow: 0 2rpx 8rpx rgba(233, 51, 35, 0.2);
+		min-width: 60rpx;
+		text-align: center;
+	}
+
+	.pagination-nav:active {
+		background: linear-gradient(135deg, #d42a1a 0%, #c02110 100%);
+		transform: scale(0.98);
+		box-shadow: 0 1rpx 4rpx rgba(233, 51, 35, 0.3);
+	}
+
+	.pagination-nav.disabled {
+		color: #999;
+		background: #f5f5f5;
+		cursor: not-allowed;
+		opacity: 0.6;
+		box-shadow: none;
+	}
+
+	.pagination-nav.disabled:active {
+		transform: none;
+		background: #f5f5f5;
+	}
+
+	.page-numbers {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 8rpx;
+		flex: 1;
+		margin: 0 20rpx;
+	}
+
+	.page-number {
+		min-width: 56rpx;
+		height: 56rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 8rpx;
+		font-size: 26rpx;
+		color: #333;
+		background: #f5f5f5;
+		cursor: pointer;
+		transition: all 0.3s;
+		border: 1rpx solid #e0e0e0;
+	}
+
+	.page-number:active {
+		transform: scale(0.95);
+	}
+
+	.page-number.active {
+		color: #fff;
+		background: linear-gradient(135deg, #e93323 0%, #d42a1a 100%);
+		border-color: #e93323;
+		box-shadow: 0 2rpx 8rpx rgba(233, 51, 35, 0.2);
+		font-weight: 500;
+	}
+
+	.page-info {
+		font-size: 28rpx;
+		color: #333;
+		min-width: 150rpx;
+		text-align: center;
+		font-weight: 500;
+	}
+
+	.page-jump {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 12rpx;
+		width: 100%;
+	}
+
+	.jump-input {
+		width: 100rpx;
+		height: 48rpx;
+		border: 1rpx solid #e0e0e0;
+		border-radius: 8rpx;
+		padding: 0 12rpx;
+		font-size: 26rpx;
+		text-align: center;
+		background: #fff;
+		box-sizing: border-box;
+	}
+
+	.jump-input:focus {
+		border-color: #e93323;
+		outline: none;
+	}
+
+	.jump-button {
+		padding: 12rpx 24rpx;
+		background: linear-gradient(135deg, #e93323 0%, #d42a1a 100%);
+		border: none;
+		border-radius: 8rpx;
+		font-size: 26rpx;
+		color: #fff;
+		cursor: pointer;
+		transition: all 0.3s;
+		box-shadow: 0 2rpx 8rpx rgba(233, 51, 35, 0.2);
+	}
+
+	.jump-button:active {
+		background: linear-gradient(135deg, #d42a1a 0%, #c02110 100%);
+		transform: scale(0.98);
+		box-shadow: 0 1rpx 4rpx rgba(233, 51, 35, 0.3);
 	}
 </style>
