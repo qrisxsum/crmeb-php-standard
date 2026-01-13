@@ -587,6 +587,7 @@ class StoreProductServices extends BaseServices
         if (count($data['cate_id']) < 1) throw new AdminException(400373);
         if (!$data['store_name']) throw new AdminException(400338);
         if (count($data['slider_image']) < 1) throw new AdminException(400349);
+        if (count($data['slider_image']) > 20) throw new AdminException('商品轮播图最多上传20张');
         if ($data['is_limit'] == 1 && $data['min_qty'] > $data['limit_num']) throw new AdminException('起购数量不能大于限购数量');
 
         $detail = $data['attrs'];

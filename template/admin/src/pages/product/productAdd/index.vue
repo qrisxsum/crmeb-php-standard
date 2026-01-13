@@ -1944,7 +1944,7 @@ export default {
       this.images = pc;
       this.images.map((item) => {
         this.formValidate.slider_image.push(item.att_dir);
-        this.formValidate.slider_image = this.formValidate.slider_image.splice(0, 10);
+        this.formValidate.slider_image = this.formValidate.slider_image.splice(0, 20);
       });
       this.oneFormValidate[0].pic = this.formValidate.slider_image[0];
       this.modalPic = false;
