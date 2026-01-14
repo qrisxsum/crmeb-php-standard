@@ -58,7 +58,19 @@
             </div>
           </template>
         </vxe-table-column>
-        <vxe-table-column field="sort" title="排序" min-width="100" tooltip="true"></vxe-table-column>
+        <!-- 行内编辑排序列 -->
+        <vxe-table-column field="sort" title="排序" min-width="120">
+          <template v-slot="{ row }">
+            <el-input-number
+              v-model="row.sort"
+              :min="0"
+              :max="99999"
+              size="mini"
+              controls-position="right"
+              @change="handleSortChange(row)"
+            />
+          </template>
+        </vxe-table-column>
         <vxe-table-column field="is_show" title="状态" min-width="120">
           <template v-slot="{ row }">
             <el-switch
@@ -91,7 +103,7 @@
 
 <script>
 import { mapState } from 'vuex';
-import { productListApi, productCreateApi, productEditApi, setShowApi, treeListApi } from '@/api/product';
+import { productListApi, productCreateApi, productEditApi, setShowApi, treeListApi, updateCategorySort } from '@/api/product';
 import editFrom from '../../../components/from/from';
 export default {
   name: 'product_productClassify',
@@ -119,6 +131,8 @@ export default {
       },
       total: 0,
       tableData: [],
+      // 防抖定时器
+      sortDebounceTimer: null,
     };
   },
   computed: {
@@ -129,6 +143,27 @@ export default {
     this.getList();
   },
   methods: {
+    // 行内编辑排序（带防抖）
+    handleSortChange(row) {
+      // 清除之前的定时器
+      if (this.sortDebounceTimer) {
+        clearTimeout(this.sortDebounceTimer);
+      }
+
+      // 设置防抖延迟，避免频繁请求
+      this.sortDebounceTimer = setTimeout(() => {
+        updateCategorySort(row.id, { sort: row.sort })
+          .then(() => {
+            this.$message.success('排序已更新');
+            // 刷新列表，显示最新排序
+            this.getList();
+          })
+          .catch(() => {
+            this.$message.error('更新失败');
+            this.getList();
+          });
+      }, 300);  // 300ms 防抖延迟
+    },
     // 商品分类；
     goodsCategory() {
       treeListApi(0)

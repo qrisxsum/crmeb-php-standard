@@ -289,9 +289,23 @@
             <span>{{ scope.row.stock }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="排序" min-width="100">
+        <!-- 拖拽手柄列 -->
+        <el-table-column width="50" label="">
           <template slot-scope="scope">
-            <span>{{ scope.row.sort }}</span>
+            <i class="el-icon-rank drag-handle" style="cursor: move; font-size: 18px; color: #909399;"></i>
+          </template>
+        </el-table-column>
+        <!-- 行内编辑排序列 -->
+        <el-table-column label="排序" min-width="120">
+          <template slot-scope="scope">
+            <el-input-number
+              v-model="scope.row.sort"
+              :min="0"
+              :max="99999"
+              size="mini"
+              controls-position="right"
+              @change="handleSortChange(scope.row)"
+            />
           </template>
         </el-table-column>
         <el-table-column label="状态" min-width="100">
@@ -610,7 +624,10 @@ import {
   productGetTemplateApi,
   productLabelUseListApi,
   productBatchDelete,
+  updateProductSort,
+  batchUpdateProductSort,
 } from '@/api/product';
+import Sortable from 'sortablejs';
 import userLabel from '@/components/labelList';
 import storeLabelList from '@/components/storeLabelList';
 import goodsLabel from '@/components/goodsLabel';
@@ -635,6 +652,7 @@ export default {
   },
   data() {
     return {
+      sortable: null, // 拖拽排序实例
       routePre: settings.routePre,
       pickerOptions: this.$timeOptions,
       template: false,
@@ -713,6 +731,11 @@ export default {
     },
   },
   created() {},
+  mounted() {
+    this.$nextTick(() => {
+      this.initSortable();
+    });
+  },
   activated() {
     this.goodHeade();
     this.goodsCategory();
@@ -724,6 +747,47 @@ export default {
     }
   },
   methods: {
+    // 行内编辑排序
+    handleSortChange(row) {
+      updateProductSort(row.id, { sort: row.sort })
+        .then(() => {
+          this.$message.success('排序已更新');
+        })
+        .catch(() => {
+          this.$message.error('更新失败');
+          this.getDataList();
+        });
+    },
+    // 初始化拖拽排序
+    initSortable() {
+      const el = this.$refs.table.$el.querySelector('.el-table__body-wrapper tbody');
+      if (!el) return;
+      this.sortable = Sortable.create(el, {
+        handle: '.drag-handle',
+        animation: 150,
+        onEnd: (evt) => {
+          const { oldIndex, newIndex } = evt;
+          if (oldIndex === newIndex) return;
+          // 移动数组元素
+          const movedItem = this.tableList.splice(oldIndex, 1)[0];
+          this.tableList.splice(newIndex, 0, movedItem);
+          // 计算新的排序值
+          const list = this.tableList.map((item, index) => ({
+            id: item.id,
+            sort: this.tableList.length - index,
+          }));
+          batchUpdateProductSort({ list })
+            .then(() => {
+              this.$message.success('排序已更新');
+              this.getDataList();
+            })
+            .catch(() => {
+              this.$message.error('更新失败');
+              this.getDataList();
+            });
+        },
+      });
+    },
     // 具体日期
     onchangeTime(e) {
       this.timeVal = e;

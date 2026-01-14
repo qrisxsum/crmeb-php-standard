@@ -12,6 +12,7 @@ namespace app\adminapi\controller\v1\product;
 
 use app\adminapi\controller\AuthController;
 use app\services\product\product\StoreCategoryServices;
+use crmeb\services\CacheService;
 use think\facade\App;
 
 /**
@@ -168,5 +169,63 @@ class StoreCategory extends AuthController
     {
         $this->service->del((int)$id);
         return app('json')->success(100002);
+    }
+
+    /**
+     * 更新单个分类排序
+     * @param int $id
+     * @return mixed
+     */
+    public function updateSort($id)
+    {
+        $sort = $this->request->post('sort', 0);
+        if (!$id) return app('json')->fail('参数错误');
+        $this->service->update((int)$id, ['sort' => (int)$sort]);
+
+        // 清除所有分类相关缓存
+        $this->clearCategoryCache();
+
+        // 更新版本号，通知手机端刷新本地缓存
+        $this->service->updateCategoryVersion();
+
+        return app('json')->success('修改成功');
+    }
+
+    /**
+     * 批量更新分类排序（拖拽用）
+     * @return mixed
+     */
+    public function batchUpdateSort()
+    {
+        $list = $this->request->post('list', []);
+        if (empty($list)) return app('json')->fail('参数错误');
+        foreach ($list as $item) {
+            if (isset($item['id']) && isset($item['sort'])) {
+                $this->service->update((int)$item['id'], ['sort' => (int)$item['sort']]);
+            }
+        }
+
+        // 清除所有分类相关缓存
+        $this->clearCategoryCache();
+
+        // 更新版本号，通知手机端刷新本地缓存
+        $this->service->updateCategoryVersion();
+
+        return app('json')->success('修改成功');
+    }
+
+    /**
+     * 清除分类相关的所有缓存
+     * @return void
+     */
+    private function clearCategoryCache()
+    {
+        // 清除 tag 下的所有缓存
+        CacheService::clear();
+
+        // 显式删除具体的分类缓存 key（防止 tag 清除不彻底）
+        CacheService::delete('CATEGORY');
+        CacheService::delete('CATEGORY_LIST');
+        CacheService::delete('category_version');
     }
 }

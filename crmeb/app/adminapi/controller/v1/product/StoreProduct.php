@@ -17,6 +17,7 @@ use app\services\order\StoreCartServices;
 use app\services\other\CacheServices;
 use app\services\product\product\StoreCategoryServices;
 use app\services\product\product\StoreProductServices;
+use crmeb\services\CacheService;
 use crmeb\services\FileService;
 use app\services\other\UploadService;
 use think\facade\App;
@@ -559,5 +560,38 @@ class StoreProduct extends AuthController
         ]);
         $this->service->otherSave($id, $type, $data);
         return app('json')->success('保存成功');
+    }
+
+    /**
+     * 更新单个商品排序
+     * @param int $id
+     * @return mixed
+     */
+    public function updateSort($id)
+    {
+        $sort = $this->request->post('sort', 0);
+        if (!$id) return app('json')->fail('参数错误');
+        $this->service->update((int)$id, ['sort' => (int)$sort]);
+        // 清除相关缓存
+        CacheService::clear();
+        return app('json')->success('修改成功');
+    }
+
+    /**
+     * 批量更新商品排序（拖拽用）
+     * @return mixed
+     */
+    public function batchUpdateSort()
+    {
+        $list = $this->request->post('list', []);
+        if (empty($list)) return app('json')->fail('参数错误');
+        foreach ($list as $item) {
+            if (isset($item['id']) && isset($item['sort'])) {
+                $this->service->update((int)$item['id'], ['sort' => (int)$item['sort']]);
+            }
+        }
+        // 清除相关缓存
+        CacheService::clear();
+        return app('json')->success('修改成功');
     }
 }

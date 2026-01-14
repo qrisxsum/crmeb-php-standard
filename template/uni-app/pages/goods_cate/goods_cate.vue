@@ -50,13 +50,34 @@ export default {
 			this.showBar = val ? true : false;
 			this.pdHeight = num;
 		},
+		/**
+		 * 清除所有分类相关的本地缓存
+		 */
+		clearLocalCategoryCache() {
+			uni.removeStorageSync('CAT1_DATA');
+			uni.removeStorageSync('CAT2_DATA');
+			uni.removeStorageSync('CAT3_DATA');
+			uni.removeStorageSync('CAT4_DATA');
+		},
 		getCategoryVersion() {
 			uni.$emit('uploadFooter');
 			getCategoryVersion().then((res) => {
-				if (!uni.getStorageSync('CAT_VERSION') || res.data.version != uni.getStorageSync('CAT_VERSION')) {
-					uni.setStorageSync('CAT_VERSION', res.data.version);
-					uni.$emit('uploadCatData');
+				const localVersion = uni.getStorageSync('CAT_VERSION');
+				const serverVersion = res.data.version;
+
+				// 版本号变化，需要刷新缓存
+				if (!localVersion || serverVersion !== localVersion) {
+					// 1. 更新本地版本号
+					uni.setStorageSync('CAT_VERSION', serverVersion);
+
+					// 2. 清除所有本地分类缓存
+					this.clearLocalCategoryCache();
+
+					// 3. 标记需要刷新
+					this.isNew = true;
 				}
+
+				// 4. 获取分类样式，确定要渲染哪个子组件
 				this.classStyle();
 			});
 		},
@@ -71,6 +92,12 @@ export default {
 				this.category = status;
 				uni.setStorageSync('is_diy', res.data.is_diy);
 				this.$nextTick((e) => {
+					// 子组件挂载完成后，如果需要刷新数据，发送事件
+					if (this.isNew) {
+						uni.$emit('uploadCatData');
+						this.isNew = false;  // 重置标记
+					}
+
 					if (status == 2 || status == 3) {
 						// 样式2和3隐藏 tabBar
 						uni.hideTabBar();

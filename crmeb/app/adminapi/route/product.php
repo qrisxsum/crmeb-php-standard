@@ -33,6 +33,10 @@ Route::group('product', function () {
         Route::put('category/set_show/:id/:is_show', 'v1.product.StoreCategory/set_show')->option(['real_name' => '商品分类修改状态']);
         //商品分类快捷编辑
         Route::put('category/set_category/:id', 'v1.product.StoreCategory/set_category')->option(['real_name' => '商品分类快捷编辑']);
+        //商品分类排序更新
+        Route::put('category/sort/:id', 'v1.product.StoreCategory/updateSort')->option(['real_name' => '更新分类排序']);
+        //商品分类批量排序更新
+        Route::post('category/batch_sort', 'v1.product.StoreCategory/batchUpdateSort')->option(['real_name' => '批量更新分类排序']);
     })->option(['parent' => 'product', 'cate_name' => '商品分类']);
 
     /** 商品 */
@@ -83,6 +87,8 @@ Route::group('product', function () {
         Route::post('product/batch_delete', 'v1.product.StoreProduct/batchDelete')->option(['real_name' => '商品批量放入回收站']);
         //批量从回收站恢复
         Route::post('product/batch_recover', 'v1.product.StoreProduct/batchRecover')->option(['real_name' => '批量从回收站恢复']);
+        //商品批量排序更新（必须在 product/:id 之前）
+        Route::post('product/batch_sort', 'v1.product.StoreProduct/batchUpdateSort')->option(['real_name' => '批量更新商品排序']);
         //保存新建或保存
         Route::post('product/:id', 'v1.product.StoreProduct/save')->option(['real_name' => '新建或修改商品']);
         //生成属性
@@ -100,6 +106,8 @@ Route::group('product', function () {
 
         Route::get('other_info/:id/:type', 'v1.product.StoreProduct/otherInfo')->option(['real_name' => '商品其他信息']);
         Route::post('other_save/:id/:type', 'v1.product.StoreProduct/otherSave')->option(['real_name' => '修改商品其他信息']);
+        //商品排序更新
+        Route::put('product/sort/:id', 'v1.product.StoreProduct/updateSort')->option(['real_name' => '更新商品排序']);
 
     })->option(['parent' => 'product', 'cate_name' => '商品']);
 
