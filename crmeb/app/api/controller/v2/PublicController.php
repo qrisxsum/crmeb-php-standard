@@ -137,6 +137,23 @@ class PublicController
         return app('json')->success(compact('status', 'is_diy'));
     }
 
+    /**
+     * 获取分类页完整配置（含导航数据）
+     * @param DiyServices $services
+     * @return mixed
+     */
+    public function getCategoryConfig(DiyServices $services)
+    {
+        $config = $services->getCategoryConfig();
+        $is_diy = $services->value(['status' => 1, 'is_del' => 0], 'is_diy');
+
+        return app('json')->success([
+            'status' => $config['status'],
+            'navigation' => $config['navigation'] ?? null,
+            'is_diy' => $is_diy
+        ]);
+    }
+
     public function getDiySign(Request $request)
     {
         $uid = (int)$request->uid();

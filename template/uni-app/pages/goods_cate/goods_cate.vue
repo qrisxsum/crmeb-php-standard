@@ -14,7 +14,7 @@ import goodsCate1 from './goods_cate1';
 import goodsCate2 from './goods_cate2';
 import goodsCate3 from './goods_cate3';
 import goodsCate4 from './goods_cate4';
-import { colorChange } from '@/api/api.js';
+import { getCategoryConfig } from '@/api/api.js';
 import { mapGetters } from 'vuex';
 import { getCategoryVersion } from '@/api/public.js';
 import pageFooter from '@/components/pageFooter/index.vue';
@@ -87,10 +87,16 @@ export default {
 			})
 		},
 		classStyle() {
-			colorChange('category').then((res) => {
+			getCategoryConfig().then((res) => {
 				let status = res.data.status;
 				this.category = status;
 				uni.setStorageSync('is_diy', res.data.is_diy);
+
+				// 存储导航配置供子组件使用
+				if (status == 4 && res.data.navigation) {
+					uni.setStorageSync('category_navigation', res.data.navigation);
+				}
+
 				this.$nextTick((e) => {
 					// 子组件挂载完成后，如果需要刷新数据，发送事件
 					if (this.isNew) {
