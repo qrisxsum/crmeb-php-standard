@@ -1,6 +1,3 @@
-# -----------------------------
-# 开发工具 / 系统文件
-# -----------------------------
 .vscode/
 .idea/
 *.swp
@@ -24,55 +21,49 @@ $RECYCLE.BIN/
 .directory
 *~
 
-# -----------------------------
 # 日志 / 临时文件
-# -----------------------------
 *.log
 temp/
 docs/
 
-# -----------------------------
 # 环境配置（包含敏感信息）
-# -----------------------------
 .env
 !.env.example
 !crmeb/public/install/.env
 
-# -----------------------------
 # CRMEB（PHP 运行时/安装产物）
-# -----------------------------
 /crmeb/runtime/
 /crmeb/public/install.lock
 /crmeb/.constant
 /crmeb/.version
 
-# 运行时生成内容（如需入库请移除对应规则）
-/crmeb/public/uploads/qrcode/
-
-# -----------------------------
 # 前端依赖与构建产物
-# -----------------------------
 /template/admin/node_modules/
 /template/admin/dist/
-
 /template/uni-app/node_modules/
 /template/uni-app/unpackage/
 /template/uni-app/.hbuilderx/
 
-# 发布到 public 的前端产物
+# 编译备份
+/crmeb/backup/frontend/
+
+# H5 编译产物
 /crmeb/public/index.html
 /crmeb/public/static/
 /crmeb/public/assets/
 /crmeb/public/pages/
+
+# PC 和 管理端编译产物
 /crmeb/public/admin/
 /crmeb/public/home/
 
-# 发布脚本备份产物
-/crmeb/backup/
+# 上传文件
+/crmeb/public/uploads/
 
-# -----------------------------
-# Docker 数据与日志（本地卷）
-# -----------------------------
+# 导出文件（运行时生成）
+/crmeb/public/phpExcel/
+
+# Docker 相关
 /docker-compose/mysql/data/
 /docker-compose/mysql/log/
 /docker-compose/nginx/log/
