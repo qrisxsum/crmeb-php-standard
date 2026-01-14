@@ -62,28 +62,20 @@
 							</view>
 						</view>
 					</view>
-					<view class='attribute acea-row row-between-wrapper' @tap='selecAttr'
-						v-if='attribute.productAttr.length'>
-						<!-- 		<view>{{attr}}：<text class='atterTxt'>{{attrValue}}</text></view>
-						<view class='iconfont icon-jiantou'></view> -->
-						<view class="flex">
-							<view style="display: flex; align-items: center; width: 90%">
-								<view class="attr-txt"> {{ attr }}： </view>
-								<view class="atterTxt line1" style="width: 82%">{{
-						      attrValue
-						    }}</view>
-							</view>
-							<view class="iconfont icon-jiantou"></view>
-						</view>
-						<view class="acea-row row-between-wrapper" style="margin-top: 7px; padding-left: 70px"
-							v-if="skuArr.length > 1">
-							<view class="flexs">
-								<image :src="item.image" v-for="(item, index) in skuArr.slice(0, 4)" :key="index"
-									class="attrImg"></image>
-							</view>
-							<view class="switchTxt">{{$t(`共`)}}{{ skuArr.length }}{{$t(`种规格可选`)}}</view>
-						</view>
-					</view>
+				<!-- Inline Specification Display -->
+				<specSelector
+					v-if='attribute.productAttr.length'
+					:attr="attribute"
+					:showQuantity="true"
+					:minQty="storeInfo.min_qty || 1"
+					:limitNum="0"
+					:unitName="storeInfo.unit_name || ''"
+					type="combination"
+					@attrVal="attrVal"
+					@ChangeAttr="ChangeAttr"
+					@ChangeCartNum="ChangeCartNum"
+					@iptCartNum="iptCartNum"
+				/>
 					<view class="bg-color">
 						<view class='notice acea-row row-middle'>
 							<view class='num font-num'>
@@ -268,7 +260,7 @@
 		<!-- #ifdef MP -->
 		<!-- <authorize @onLoadFun="onLoadFun" :isAuto="isAuto" :isShowAuth="isShowAuth" @authColse="authColse"></authorize> -->
 		<!-- #endif -->
-		<product-window :attr='attribute' :limitNum='1' :type="'combination'" @myevent="onMyEvent" @ChangeAttr="ChangeAttr"
+		<!-- <product-window :attr='attribute' :limitNum='1' :type="'combination'" @myevent="onMyEvent" @ChangeAttr="ChangeAttr"
 			@ChangeCartNum="ChangeCartNum" @iptCartNum="iptCartNum" @attrVal="attrVal" @getImg="showImg">
 		</product-window>
 		<swiperPrevie ref="cusSwiperImg" :list="storeInfo.images"></swiperPrevie>
@@ -309,6 +301,7 @@
 		imageBase64
 	} from "@/api/public";
 	import productWindow from '@/components/productWindow/index.vue'
+	import specSelector from '@/components/specSelector/index.vue'
 	import userEvaluation from '@/components/userEvaluation/index.vue'
 	import countDown from '@/components/countDown/index.vue'
 	import kefuIcon from '@/components/kefuIcon';
@@ -337,8 +330,9 @@
 	let sysHeight = uni.getSystemInfoSync().statusBarHeight + 'px';
 	export default {
 		components: {
-			productConSwiper,
-			kefuIcon,
+		productConSwiper,
+		kefuIcon,
+		specSelector,
 			// #ifdef MP
 			authorize,
 			// #endif
@@ -864,9 +858,9 @@
 				this.userInfo = e
 				this.combinationDetail();
 			},
-			selecAttr: function() {
-				this.attribute.cartAttr = true
-			},
+// 			selecAttr: function() {
+// 				this.attribute.cartAttr = true
+// 			},
 			onMyEvent: function() {
 				this.$set(this.attribute, 'cartAttr', false);
 				this.$set(this, 'isOpen', false);

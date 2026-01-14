@@ -65,27 +65,20 @@
 							<view class="stock">{{$t(`已兑换`)}}：{{ storeInfo.sales }} </view>
 						</view>
 					</view>
-					<view class="attribute acea-row row-between-wrapper" @tap="selecAttr" v-if="attribute.productAttr.length">
-						<!-- <view class="df"><text class='atterTxt line1'>{{attr}}：{{attrValue}}</text></view>
-						<view class='iconfont icon-jiantou'></view> -->
-						<view class="flex">
-							<view style="display: flex; align-items: center; width: 90%">
-								<view class="attr-txt"> {{ attr }}： </view>
-								<view class="atterTxt line1" style="width: 82%">{{
-                  attrValue
-                }}</view>
-							</view>
-							<view class="iconfont icon-jiantou"></view>
-						</view>
-						<view class="acea-row row-between-wrapper" style="margin-top: 7px; padding-left: 70px"
-							v-if="skuArr.length > 1">
-							<view class="flexs">
-								<image :src="item.image" v-for="(item, index) in skuArr.slice(0, 4)" :key="index" class="attrImg">
-								</image>
-							</view>
-							<view class="switchTxt">{{$t(`共`)}}{{ skuArr.length }}{{$t(`种规格可选`)}}</view>
-						</view>
-					</view>
+				<!-- Inline Specification Display -->
+				<specSelector
+					v-if="attribute.productAttr.length"
+					:attr="attribute"
+					:showQuantity="true"
+					:minQty="storeInfo.min_qty || 1"
+					:limitNum="storeInfo.num > 0 ? storeInfo.num : 0"
+					:unitName="''"
+					type="integral"
+					@attrVal="attrVal"
+					@ChangeAttr="ChangeAttr"
+					@ChangeCartNum="ChangeCartNum"
+					@iptCartNum="iptCartNum"
+				/>
 				</view>
 				<view class="product-intro" id="past2">
 					<view class="title">{{$t(`产品介绍`)}}</view>
@@ -110,7 +103,7 @@
 				</view>
 			</view>
 		</view>
-		<product-window :attr="attribute" :limitNum="1" @myevent="onMyEvent" @ChangeAttr="ChangeAttr"
+		<!-- <product-window :attr="attribute" :limitNum="1" @myevent="onMyEvent" @ChangeAttr="ChangeAttr"
 			@ChangeCartNum="ChangeCartNum" @attrVal="attrVal" @iptCartNum="iptCartNum" @getImg="showImg">
 		</product-window>
 		<cus-previewImg ref="cusPreviewImg" :list="skuArr" @changeSwitch="changeSwitch"
@@ -131,6 +124,7 @@
 	} from '@/api/activity.js';
 	import productConSwiper from '@/components/productConSwiper/index.vue'
 	import productWindow from './component/productWindow.vue'
+	import specSelector from '@/components/specSelector/index.vue'
 	import userEvaluation from '@/components/userEvaluation/index.vue'
 	import kefuIcon from '@/components/kefuIcon';
 	// #ifdef MP
@@ -233,6 +227,7 @@
 		},
 		components: {
 			productConSwiper,
+		specSelector,
 			'productWindow': productWindow,
 			userEvaluation,
 			kefuIcon,
@@ -513,9 +508,9 @@
 					self.$set(self, "attrTxt", self.$t(`请选择`));
 				}
 			},
-			selecAttr: function() {
-				this.attribute.cartAttr = true
-			},
+// 			selecAttr: function() {
+// 				this.attribute.cartAttr = true
+// 			},
 			onMyEvent: function() {
 				this.$set(this.attribute, 'cartAttr', false);
 				this.$set(this, 'isOpen', false);

@@ -40,6 +40,7 @@ docs/
 /crmeb/public/install.lock
 /crmeb/.constant
 /crmeb/.version
+/crmeb/public/uploads/qrcode/
 
 # Frontend Build Outputs
 # H5 build output
@@ -47,6 +48,7 @@ docs/
 /crmeb/public/static/
 /crmeb/public/assets/
 /crmeb/public/pages/
+/crmeb/backup/frontend/uni-h5/
 
 # PC template (Nuxt.js)
 /crmeb/public/home/
