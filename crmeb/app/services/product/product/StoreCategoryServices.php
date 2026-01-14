@@ -122,6 +122,7 @@ class StoreCategoryServices extends BaseServices
         $res = $this->dao->update($id, ['is_show' => $is_show]);
         $res = $res && $this->dao->update($id, ['is_show' => $is_show], 'pid');
         CacheService::clear();
+        $this->updateCategoryVersion();
         if (!$res) {
             throw new AdminException(100005);
         }
@@ -215,6 +216,7 @@ class StoreCategoryServices extends BaseServices
         if (!$res) throw new AdminException(100006);
 
         CacheService::clear();
+        $this->updateCategoryVersion();
 
         return (int)$res->id;
     }
@@ -254,6 +256,7 @@ class StoreCategoryServices extends BaseServices
         });
 
         CacheService::clear();
+        $this->updateCategoryVersion();
     }
 
     /**
@@ -269,6 +272,7 @@ class StoreCategoryServices extends BaseServices
         if (!$res) throw new AdminException(100008);
 
         CacheService::clear();
+        $this->updateCategoryVersion();
     }
 
     /**
@@ -285,6 +289,21 @@ class StoreCategoryServices extends BaseServices
                 'version' => uniqid()
             ];
         });
+    }
+
+    /**
+     * 更新分类版本号，用于通知手机端刷新缓存
+     * @return array
+     */
+    public function updateCategoryVersion()
+    {
+        $data = [
+            'is_diy' => app()->make(DiyServices::class)->value(['status' => 1], 'is_diy'),
+            'version' => uniqid()
+        ];
+        // 直接覆盖写入，确保版本号更新
+        CacheService::set('category_version', $data, 0, 'crmeb');
+        return $data;
     }
 
     /**

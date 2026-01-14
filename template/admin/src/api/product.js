@@ -648,3 +648,53 @@ export function replyBatchStatus(data) {
     data,
   });
 }
+
+/**
+ * @description 更新单个商品排序
+ * @param {Number} id 商品ID
+ * @param {Object} data { sort: Number }
+ */
+export function updateProductSort(id, data) {
+  return request({
+    url: `product/product/sort/${id}`,
+    method: 'put',
+    data,
+  });
+}
+
+/**
+ * @description 批量更新商品排序（拖拽用）
+ * @param {Object} data { list: [{ id, sort }, ...] }
+ */
+export function batchUpdateProductSort(data) {
+  return request({
+    url: 'product/product/batch_sort',
+    method: 'post',
+    data,
+  });
+}
+
+/**
+ * @description 更新单个分类排序
+ * @param {Number} id 分类ID
+ * @param {Object} data { sort: Number }
+ */
+export function updateCategorySort(id, data) {
+  return request({
+    url: `product/category/sort/${id}`,
+    method: 'put',
+    data,
+  });
+}
+
+/**
+ * @description 批量更新分类排序（拖拽用）
+ * @param {Object} data { list: [{ id, sort }, ...] }
+ */
+export function batchUpdateCategorySort(data) {
+  return request({
+    url: 'product/category/batch_sort',
+    method: 'post',
+    data,
+  });
+}

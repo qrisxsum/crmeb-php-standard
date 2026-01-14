@@ -91,6 +91,8 @@
 									:key="idx"
 								></BaseTag>
 							</view>
+							<!-- 支付方式标签 -->
+							<payMethodsTag />
 							<view v-if="!is_money_level && storeInfo.vip_price && storeInfo.is_vip" class="svip acea-row row-between-wrapper">
 								<view class="">{{ $t(`开通“超级会员”立省`) }}{{ diff }}{{ $t(`元`) }}</view>
 								<navigator url="/pages/annex/vip_paid/index">
@@ -514,6 +516,7 @@ import parser from '@/components/jyf-parser/jyf-parser';
 import homeList from '@/components/homeList';
 import specs from './components/specs/index.vue';
 import serviceModal from './components/serviceModal/index.vue';
+import payMethodsTag from '@/components/payMethodsTag/index.vue';
 export default {
 	components: {
 		productConSwiper,
@@ -531,7 +534,8 @@ export default {
 		parser,
 		homeList,
 		specs,
-		serviceModal
+		serviceModal,
+		payMethodsTag
 	},
 	directives: {
 		trigger: {
