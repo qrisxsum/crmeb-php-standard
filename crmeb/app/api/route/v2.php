@@ -41,6 +41,7 @@ Route::group('v2', function () {
             Route::get('diy/color_change/:name', 'v2.PublicController/colorChange')->option(['real_name' => '一键换色']);
             Route::get('diy/get_diy/[:name]', 'v2.PublicController/getDiy')->option(['real_name' => '获取DIY数据']);
             Route::get('diy/get_version/[:name]', 'v2.PublicController/getVersion')->option(['real_name' => '获取DIY版本号']);
+            Route::get('diy/category_config', 'v2.PublicController/getCategoryConfig')->option(['real_name' => '获取分类页完整配置']);
         })->option(['mark' => 'diy', 'mark_name' => 'DIY']);
     });
     //需要授权

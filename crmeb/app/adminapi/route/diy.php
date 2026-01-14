@@ -54,6 +54,10 @@ Route::group('diy', function () {
     Route::get('get_color_change/:type', 'v1.diy.Diy/getColorChange')->option(['real_name' => '获取风格设置']);
     //换色和分类保存
     Route::put('color_change/:status/:type', 'v1.diy.Diy/colorChange')->option(['real_name' => '换色和分类保存']);
+    //获取分类页完整配置
+    Route::get('get_category_config', 'v1.diy.Diy/getCategoryConfig')->option(['real_name' => '获取分类页配置']);
+    //保存分类页完整配置
+    Route::post('save_category_config', 'v1.diy.Diy/saveCategoryConfig')->option(['real_name' => '保存分类页配置']);
     //个人中心菜单获取
     Route::get('get_member', 'v1.diy.Diy/getMember')->option(['real_name' => '个人中心详情']);
     //获取页面链接分类

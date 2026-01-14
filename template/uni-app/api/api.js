@@ -340,6 +340,15 @@ export function colorChange(name) {
 }
 
 /**
+ * 获取分类页完整配置（含导航数据）
+ */
+export function getCategoryConfig() {
+	return request.get('v2/diy/category_config', {}, {
+		noAuth: true
+	});
+}
+
+/**
  * 获取公众号关注
  * @returns {*}
  */

@@ -588,6 +588,45 @@ class Diy extends AuthController
     }
 
     /**
+     * 获取分类页完整配置
+     * @return mixed
+     */
+    public function getCategoryConfig()
+    {
+        $config = $this->services->getCategoryConfig();
+        return app('json')->success($config);
+    }
+
+    /**
+     * 保存分类页完整配置
+     * @return mixed
+     */
+    public function saveCategoryConfig()
+    {
+        $data = $this->request->postMore([
+            ['status', 1],
+            ['navigation', []],
+        ]);
+
+        // 验证status范围
+        if ($data['status'] < 1 || $data['status'] > 4) {
+            throw new AdminException(100100);
+        }
+
+        // 验证导航数据
+        if (!empty($data['navigation']['items'])) {
+            foreach ($data['navigation']['items'] as $item) {
+                if (empty($item['title'])) {
+                    throw new AdminException(100100);
+                }
+            }
+        }
+
+        $this->services->saveCategoryConfig($data);
+        return app('json')->success(100014);
+    }
+
+    /**
      * 获取个人中心数据
      * @return mixed
      */

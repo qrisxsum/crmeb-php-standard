@@ -243,6 +243,27 @@ export function getColorChange(name) {
 }
 
 /**
+ * @description 获取分类页完整配置
+ */
+export function getCategoryConfig() {
+  return request({
+    url: 'diy/get_category_config',
+    method: 'get',
+  });
+}
+
+/**
+ * @description 保存分类页完整配置
+ */
+export function saveCategoryConfig(data) {
+  return request({
+    url: 'diy/save_category_config',
+    method: 'post',
+    data: data,
+  });
+}
+
+/**
  * @description 个人中心-获取信息；
  */
 export function getMember() {
