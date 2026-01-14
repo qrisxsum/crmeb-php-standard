@@ -51,7 +51,10 @@ docs/
 # PC template (Nuxt.js)
 /crmeb/public/home/
 
-# Admin template
+# Admin template build output (compiled files)
+/crmeb/public/admin/
+
+# Admin template source
 /template/admin/dist/
 /template/admin/node_modules/
 
