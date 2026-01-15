@@ -15,6 +15,7 @@ namespace app\api\controller\pc;
 use app\Request;
 use app\services\article\ArticleCategoryServices;
 use app\services\article\ArticleServices;
+use app\services\diy\DiyServices;
 use app\services\pc\PublicServices;
 use crmeb\services\CacheService;
 
@@ -142,5 +143,46 @@ class PublicController
     {
         $info = $services->getInfo($id);
         return app('json')->success($info);
+    }
+
+    /**
+     * 获取社交媒体链接（共享手机端DIY配置）
+     * @param DiyServices $diyServices
+     * @return mixed
+     */
+    public function getSocialLinks(DiyServices $diyServices)
+    {
+        $socialLinks = [];
+
+        // 获取首页DIY配置（id=0获取当前使用的配置）
+        $diyData = $diyServices->getDiy(0);
+
+        // 从DIY配置中查找socialContact组件
+        if (!empty($diyData['value']) && is_array($diyData['value'])) {
+            foreach ($diyData['value'] as $component) {
+                if (isset($component['name']) && $component['name'] === 'socialContact') {
+                    // 提取启用的社交链接
+                    if (!empty($component['socialList']) && is_array($component['socialList'])) {
+                        foreach ($component['socialList'] as $link) {
+                            if (!empty($link['enabled'])) {
+                                $icon = $link['icon'] ?? '';
+                                // 处理图标URL完整性
+                                if ($icon && strpos($icon, 'http') === false) {
+                                    $icon = sys_config('site_url') . $icon;
+                                }
+                                $socialLinks[] = [
+                                    'name' => $link['name'] ?? '',
+                                    'icon' => $icon,
+                                    'url' => $link['url'] ?? '',
+                                ];
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        return app('json')->success(['social_links' => $socialLinks]);
     }
 }

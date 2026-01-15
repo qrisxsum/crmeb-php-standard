@@ -36,6 +36,7 @@ Route::group('pc', function () {
         Route::get('get_company_info', 'pc.PublicController/getCompanyInfo')->name('getCompanyInfo')->option(['real_name' => '获取公司信息']);//获取公司信息
         Route::get('get_recommend/:type', 'pc.ProductController/getRecommendList')->name('getRecommendList')->option(['real_name' => '获取推荐商品']);//获取推荐商品
         Route::get('get_wechat_qrcode', 'pc.PublicController/getWechatQrcode')->name('getWechatQrcode')->option(['real_name' => '获取关注二维码']);//获取关注二维码
+        Route::get('get_social_links', 'pc.PublicController/getSocialLinks')->name('getSocialLinks')->option(['real_name' => '获取社交媒体链接']);//获取社交媒体链接
         Route::get('get_good_product', 'pc.ProductController/getGoodProduct')->name('getGoodProduct')->option(['real_name' => '获取优品推荐']);//获取优品推荐
         Route::get('get_news_category', 'pc.PublicController/getNewsCategory')->name('getNewsCategory')->option(['real_name' => '获取文章分类']);//获取文章分类
         Route::get('get_news_list', 'pc.PublicController/getNewsList')->name('getNewsList')->option(['real_name' => '获取文章列表']);//获取文章列表
