@@ -80,6 +80,18 @@
     </div>
     <div class="floatWindow">
       <div class="list">
+        <!-- 社交媒体链接 -->
+        <div
+          class="item social-item"
+          v-for="(item, index) in socialLinks"
+          :key="'social-' + index"
+          @click="openSocial(item)"
+        >
+          <div class="social-icon">
+            <img :src="item.icon" :alt="item.name" />
+          </div>
+          <div>{{ item.name }}</div>
+        </div>
         <!-- <div class="item" @click="chatShow">
           <div class="iconfont icon-lianxikefu"></div>
           <div>联系客服</div>
@@ -140,7 +152,8 @@ export default {
     return {
       companyInfo: {},
       codeUrl: "",
-      iScode: false
+      iScode: false,
+      socialLinks: []
     };
   },
   head() {
@@ -162,6 +175,7 @@ export default {
   created() {
     this.getCompanyInfo();
     this.wechatCode();
+    this.getSocialLinks();
   },
   mounted() {},
   methods: {
@@ -197,6 +211,20 @@ export default {
         this.$store.commit("titles", res.data.site_name);
         this.$cookies.set("titles", res.data.site_name);
       });
+    },
+    // 获取社交媒体链接（共享手机端DIY配置）
+    getSocialLinks() {
+      this.$axios.get("/pc/get_social_links").then(res => {
+        this.socialLinks = res.data.social_links || [];
+      });
+    },
+    // 打开社交媒体链接
+    openSocial(item) {
+      if (!item.url) {
+        this.$message.warning('链接未配置');
+        return;
+      }
+      window.open(item.url, '_blank');
     }
   }
 };
@@ -209,7 +237,7 @@ export default {
   bottom: 9%;
   width: 56px;
   height: 56px;
-  margin-bottom: 300px;
+  margin-bottom: 600px;
   z-index: 99;
   .pictrue {
     width: 100%;
@@ -256,6 +284,17 @@ export default {
       .iconfont {
         margin-bottom: 5px;
         font-size: 25px;
+      }
+      .social-icon {
+        width: 28px;
+        height: 28px;
+        margin: 0 auto 5px auto;
+        img {
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          object-fit: cover;
+        }
       }
       & ~ .item {
         &:before {

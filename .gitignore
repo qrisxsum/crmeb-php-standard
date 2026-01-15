@@ -43,6 +43,9 @@ docs/
 /template/uni-app/node_modules/
 /template/uni-app/unpackage/
 /template/uni-app/.hbuilderx/
+/template/pc/node_modules/
+/template/pc/dist/
+/template/pc/nuxt-dist/
 
 # 编译备份
 /crmeb/backup/frontend/
