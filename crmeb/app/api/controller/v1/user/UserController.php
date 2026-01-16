@@ -11,10 +11,12 @@
 namespace app\api\controller\v1\user;
 
 use app\Request;
+use app\api\validate\user\EmailLoginValidates;
 use app\services\product\product\StoreProductLogServices;
 use app\services\user\UserCancelServices;
 use app\services\user\UserServices;
 use app\services\wechat\WechatUserServices;
+use think\exception\ValidateException;
 
 
 /**
@@ -42,7 +44,10 @@ class UserController
      */
     public function userInfo(Request $request)
     {
-        $info = $request->user()->toArray();
+        $user = $request->user();
+        $info = $user->toArray();
+        // 用户模型默认隐藏 email，这里为“我的账号/设置”补充返回
+        $info['email'] = $user->getAttr('email');
         return app('json')->success($this->services->userInfo($info));
     }
 
@@ -64,7 +69,10 @@ class UserController
      */
     public function user(Request $request)
     {
-        $user = $request->user()->toArray();
+        $userModel = $request->user();
+        $user = $userModel->toArray();
+        // 用户模型默认隐藏 email，这里为“个人中心/设置”补充返回
+        $user['email'] = $userModel->getAttr('email');
         return app('json')->success($this->services->personalHome($user, $request->tokenData()));
     }
 
@@ -84,15 +92,68 @@ class UserController
      */
     public function edit(Request $request)
     {
-        list($avatar, $nickname) = $request->postMore([
-            ['avatar', ''],
-            ['nickname', ''],
-        ], true);
-        if (!$avatar && $nickname == '') {
-            return app('json')->fail(410134);
-        }
         $uid = (int)$request->uid();
-        if ($this->services->eidtNickname($uid, ['avatar' => $avatar, 'nickname' => $nickname])) {
+        $post = (array)$request->post();
+
+        $update = [];
+
+        if (array_key_exists('avatar', $post)) {
+            $avatar = trim((string)$post['avatar']);
+            if ($avatar !== '') $update['avatar'] = $avatar;
+        }
+
+        if (array_key_exists('nickname', $post)) {
+            $nickname = trim((string)$post['nickname']);
+            if ($nickname === '') return app('json')->fail('昵称不能为空');
+            $update['nickname'] = $nickname;
+        }
+
+        if (array_key_exists('real_name', $post)) {
+            $realName = trim((string)$post['real_name']);
+            if ($realName === '') return app('json')->fail('真实姓名不能为空');
+            $update['real_name'] = $realName;
+        }
+
+        if (array_key_exists('sex', $post)) {
+            if ($post['sex'] === '' || $post['sex'] === null) return app('json')->fail('请选择性别');
+            $sex = (int)$post['sex'];
+            if (!in_array($sex, [0, 1, 2], true)) return app('json')->fail('性别参数错误');
+            $update['sex'] = $sex;
+        }
+
+        $emailChange = [];
+        if (array_key_exists('email', $post)) {
+            $email = trim((string)$post['email']);
+            try {
+                validate(EmailLoginValidates::class)->scene('code')->check(['email' => $email]);
+            } catch (ValidateException $e) {
+                return app('json')->fail($e->getError());
+            }
+
+            $currentEmail = (string)$request->user()->getAttr('email');
+            if ($email !== $currentEmail) {
+                $captcha = trim((string)($post['email_captcha'] ?? ''));
+                $password = (string)($post['password'] ?? '');
+                try {
+                    validate(EmailLoginValidates::class)->scene('login')->check(['email' => $email, 'captcha' => $captcha]);
+                } catch (ValidateException $e) {
+                    return app('json')->fail($e->getError());
+                }
+                if (trim($password) === '') return app('json')->fail('请输入登录密码');
+
+                $emailChange = [
+                    'email' => $email,
+                    'captcha' => $captcha,
+                    'password' => $password,
+                ];
+            }
+        }
+
+        if (!$update && !$emailChange) {
+            return app('json')->fail('请填写要修改的信息');
+        }
+
+        if ($this->services->editUserInfo($uid, $update, $emailChange)) {
             return app('json')->success(100014);
         }
         return app('json')->fail(100015);

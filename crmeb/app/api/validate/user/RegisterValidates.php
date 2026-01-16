@@ -27,6 +27,10 @@ class RegisterValidates extends Validate
         'account' => 'require|regex:phone',
         'captcha' => 'require|length:6',
         'password' => 'require',
+        'email' => 'require|email',
+        'real_name' => 'require|max:25',
+        'nickname' => 'require|max:60',
+        'sex' => 'require|in:0,1,2',
     ];
 
     protected $message = [
@@ -37,6 +41,14 @@ class RegisterValidates extends Validate
         'captcha.require' => '410004',
         'captcha.length' => '410010',
         'password.require' => '410011',
+        'email.require' => '411600',
+        'email.email' => '411601',
+        'real_name.require' => '400760',
+        'real_name.max' => '411608',
+        'nickname.require' => '400001',
+        'nickname.max' => '411609',
+        'sex.require' => '411607',
+        'sex.in' => '411607',
     ];
 
 
@@ -47,6 +59,11 @@ class RegisterValidates extends Validate
 
 
     public function sceneRegister()
+    {
+        return $this->only(['account', 'captcha', 'password', 'email', 'real_name', 'nickname', 'sex']);
+    }
+
+    public function sceneReset()
     {
         return $this->only(['account', 'captcha', 'password']);
     }

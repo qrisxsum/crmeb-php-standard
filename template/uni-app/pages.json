@@ -527,6 +527,19 @@
 					}
 				},
 				{
+					"path": "user_email/index",
+					"style": {
+						"navigationBarTitleText": "修改邮箱",
+						"app-plus": {
+							// #ifdef APP-PLUS
+							"titleNView": {
+								"type": "default"
+							}
+							// #endif
+						}
+					}
+				},
+				{
 					"path": "user_get_coupon/index",
 					"style": {
 						"navigationBarTitleText": "领取优惠券",

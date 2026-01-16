@@ -46,6 +46,17 @@ services:
     networks:
       app_net:
         ipv4_address: 192.168.10.10
+  # mailpit 本地邮件调试（SMTP + Web 收件箱）
+  mailpit:
+    container_name: crmeb_mailpit
+    image: axllent/mailpit:latest
+    restart: always
+    ports:
+      - "8025:8025" # Web 收件箱
+      - "1025:1025" # SMTP
+    networks:
+      app_net:
+        ipv4_address: 192.168.10.12
   # php 容器
   phpfpm:
     container_name: crmeb_php #指定容器名
@@ -120,4 +131,3 @@ networks: #网络配置
       driver: default
       config:
         - subnet: 192.168.10.0/24 #IP区间
-
