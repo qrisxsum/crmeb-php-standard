@@ -475,6 +475,28 @@ class PublicController
     }
 
     /**
+     * 获取底部预留模块配置
+     * @param DiyServices $services
+     * @return mixed
+     */
+    public function getPageBottom(DiyServices $services)
+    {
+        $config = $services->getPageBottomConfig();
+        return app('json')->success($config);
+    }
+
+    /**
+     * 获取底部预留模块版本号
+     * @param DiyServices $services
+     * @return mixed
+     */
+    public function getPageBottomVersion(DiyServices $services)
+    {
+        $version = $services->getPageBottomVersion();
+        return app('json')->success(['version' => $version]);
+    }
+
+    /**
      * 首页商品数据
      * @param Request $request
      */

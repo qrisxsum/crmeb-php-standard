@@ -464,6 +464,10 @@ Route::group(function () {
         Route::get('pink', 'v1.PublicController/pink')->name('pinkData')->option(['real_name' => '拼团数据']);
         //获取底部导航
         Route::get('navigation/[:template_name]', 'v1.PublicController/getNavigation')->name('getNavigation')->option(['real_name' => '获取底部导航']);
+        //获取底部预留模块配置
+        Route::get('page_bottom', 'v1.PublicController/getPageBottom')->name('getPageBottom')->option(['real_name' => '获取底部预留模块配置']);
+        //获取底部预留模块版本号
+        Route::get('page_bottom_version', 'v1.PublicController/getPageBottomVersion')->name('getPageBottomVersion')->option(['real_name' => '获取底部预留模块版本号']);
         //用户访问
         Route::post('user/set_visit', 'v1.user.UserController/set_visit')->name('setVisit')->option(['real_name' => '添加用户访问记录']);// 添加用户访问记录
         //复制口令接口

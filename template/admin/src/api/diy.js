@@ -405,3 +405,24 @@ export function getProProduct(data) {
     params: data,
   });
 }
+
+/**
+ * @description 获取底部预留模块配置
+ */
+export function getPageBottomConfig() {
+  return request({
+    url: 'diy/get_page_bottom_config',
+    method: 'get',
+  });
+}
+
+/**
+ * @description 保存底部预留模块配置
+ */
+export function savePageBottomConfig(data) {
+  return request({
+    url: 'diy/save_page_bottom_config',
+    method: 'post',
+    data: data,
+  });
+}

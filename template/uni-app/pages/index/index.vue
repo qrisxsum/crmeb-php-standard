@@ -110,6 +110,7 @@
 					</view>
 					<!-- #endif -->
 					<view class="pb-safe" :style="[pdHeights]" v-if="isFooter"></view>
+					<pageBottom></pageBottom>
 					<pageFooter :configData="footerConfigData" @newDataStatus="newDataStatus"></pageFooter>
 				</view>
 			</view>
@@ -187,6 +188,7 @@ import { goShopDetail } from '@/libs/order.js';
 import { toLogin } from '@/libs/login.js';
 import { HTTP_REQUEST_URL } from '@/config/app';
 import pageFooter from '@/components/pageFooter/index.vue';
+import pageBottom from '@/components/pageBottom/index.vue';
 import Loading from '@/components/Loading/index.vue';
 import Cache from '@/utils/cache';
 import appUpdate from '@/components/update/app-update.vue';
@@ -220,6 +222,7 @@ export default {
 	components: {
 		Loading,
 		pageFooter,
+		pageBottom,
 		couponWindow,
 		homeComb,
 		newVip,
