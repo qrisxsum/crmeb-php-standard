@@ -172,6 +172,7 @@
 		<!-- #endif -->
 		<!-- <view class="uni-p-b-96"></view> -->
 		<view class="uni-p-b-98"></view>
+		<pageBottom></pageBottom>
 		<pageFooter @newDataStatus="newDataStatus"></pageFooter>
 	</view>
 </template>
@@ -191,6 +192,7 @@ import productWindow from '@/components/productWindow';
 import authorize from '@/components/Authorize';
 // #endif
 import pageFooter from '@/components/pageFooter/index.vue'
+import pageBottom from '@/components/pageBottom/index.vue'
 import colors from '@/mixins/color';
 import { HTTP_REQUEST_URL, DEBOUNCETIME } from '@/config/app';
 import { Throttle } from '@/utils/validate.js';
@@ -198,6 +200,7 @@ import { Throttle } from '@/utils/validate.js';
 export default {
 	components: {
 		pageFooter,
+		pageBottom,
 		recommend,
 		productWindow,
 		// #ifdef MP

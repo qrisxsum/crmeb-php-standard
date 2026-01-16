@@ -461,6 +461,15 @@ export default {
       component: () => import('@/pages/setting/devise/links'),
     },
     {
+      path: 'pages/page_bottom',
+      name: `${pre}pageBottom`,
+      meta: {
+        auth: ['admin-setting-pages-page_bottom'],
+        title: '底部预留模块',
+      },
+      component: () => import('@/pages/setting/pageBottom/index'),
+    },
+    {
       path: 'store_service/speechcraft',
       name: `${pre}speechcraft`,
       meta: {

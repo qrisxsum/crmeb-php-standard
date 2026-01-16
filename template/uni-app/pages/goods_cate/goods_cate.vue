@@ -4,6 +4,7 @@
 		<goodsCate2 v-if="category == 2" ref="classTwo" :isNew="isNew" @jumpIndex="jumpIndex"></goodsCate2>
 		<goodsCate3 v-if="category == 3" ref="classThree" :isNew="isNew" @jumpIndex="jumpIndex"></goodsCate3>
 		<goodsCate4 v-if="category == 4" ref="classFour" :isNew="isNew" @jumpIndex="jumpIndex"></goodsCate4>
+		<pageBottom v-if="category == 1"></pageBottom>
 		<pageFooter v-if="category == 1" @newDataStatus="newDataStatus" v-show="showBar"></pageFooter>
 	</view>
 </template>
@@ -18,6 +19,7 @@ import { getCategoryConfig } from '@/api/api.js';
 import { mapGetters } from 'vuex';
 import { getCategoryVersion } from '@/api/public.js';
 import pageFooter from '@/components/pageFooter/index.vue';
+import pageBottom from '@/components/pageBottom/index.vue';
 export default {
 	computed: mapGetters(['isLogin', 'uid']),
 	components: {
@@ -25,7 +27,8 @@ export default {
 		goodsCate2,
 		goodsCate3,
 		goodsCate4,
-		pageFooter
+		pageFooter,
+		pageBottom
 	},
 	mixins: [colors],
 	data() {

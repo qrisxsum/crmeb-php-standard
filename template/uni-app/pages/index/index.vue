@@ -69,6 +69,8 @@
 					<signIn v-if="item.name == 'signIn'" :dataConfig="item"></signIn>
 					<hotspot v-if="item.name == 'hotspot'" :dataConfig="item"></hotspot>
 					<follow v-if="item.name == 'follow'" :dataConfig="item"></follow>
+					<!-- 海报商品组 -->
+					<posterGoods v-if="item.name == 'posterGoods'" :dataConfig="item"></posterGoods>
 				</block>
 				<!-- 分类商品模块 -->
 				<!-- #ifndef  APP-PLUS -->
@@ -108,6 +110,7 @@
 					</view>
 					<!-- #endif -->
 					<view class="pb-safe" :style="[pdHeights]" v-if="isFooter"></view>
+					<pageBottom></pageBottom>
 					<pageFooter :configData="footerConfigData" @newDataStatus="newDataStatus"></pageFooter>
 				</view>
 			</view>
@@ -170,6 +173,7 @@ import videos from './components/videos';
 import signIn from './components/signIn';
 import hotspot from './components/hotspot';
 import follow from './components/follow';
+import posterGoods from './components/posterGoods';
 import waterfallsFlow from '@/components/WaterfallsFlow/WaterfallsFlow.vue';
 import emptyPage from '@/components/emptyPage.vue';
 // #ifdef MP
@@ -184,6 +188,7 @@ import { goShopDetail } from '@/libs/order.js';
 import { toLogin } from '@/libs/login.js';
 import { HTTP_REQUEST_URL } from '@/config/app';
 import pageFooter from '@/components/pageFooter/index.vue';
+import pageBottom from '@/components/pageBottom/index.vue';
 import Loading from '@/components/Loading/index.vue';
 import Cache from '@/utils/cache';
 import appUpdate from '@/components/update/app-update.vue';
@@ -217,6 +222,7 @@ export default {
 	components: {
 		Loading,
 		pageFooter,
+		pageBottom,
 		couponWindow,
 		homeComb,
 		newVip,
@@ -244,6 +250,7 @@ export default {
 		ranking,
 		presale,
 		pointsMall,
+		posterGoods,
 		// #ifndef APP
 		richText,
 		videos,

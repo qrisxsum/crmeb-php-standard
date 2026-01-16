@@ -627,6 +627,42 @@ class Diy extends AuthController
     }
 
     /**
+     * 获取底部预留模块配置
+     * @return mixed
+     */
+    public function getPageBottomConfig()
+    {
+        $config = $this->services->getPageBottomConfig();
+        return app('json')->success($config);
+    }
+
+    /**
+     * 保存底部预留模块配置
+     * @return mixed
+     */
+    public function savePageBottomConfig()
+    {
+        $data = $this->request->postMore([
+            ['notice', []],
+            ['navLinks', []],
+            ['copyright', []],
+            ['backTop', []]
+        ]);
+
+        // 验证公告数据
+        if (!empty($data['notice']['list'])) {
+            foreach ($data['notice']['list'] as $item) {
+                if (empty($item['title'])) {
+                    throw new AdminException(100100);
+                }
+            }
+        }
+
+        $this->services->savePageBottomConfig($data);
+        return app('json')->success(100014);
+    }
+
+    /**
      * 获取个人中心数据
      * @return mixed
      */
