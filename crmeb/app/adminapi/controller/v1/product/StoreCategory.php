@@ -120,7 +120,10 @@ class StoreCategory extends AuthController
             ['pic', ''],
             ['big_pic', ''],
             ['sort', 0],
-            ['is_show', 0]
+            ['is_show', 0],
+            ['seo_title', ''],
+            ['seo_keywords', ''],
+            ['seo_description', '']
         ]);
         $this->service->createData($data);
         return app('json')->success(100000);
@@ -153,7 +156,10 @@ class StoreCategory extends AuthController
             ['pic', ''],
             ['big_pic', ''],
             ['sort', 0],
-            ['is_show', 0]
+            ['is_show', 0],
+            ['seo_title', ''],
+            ['seo_keywords', ''],
+            ['seo_description', '']
         ]);
 
         $this->service->editData($id, $data);

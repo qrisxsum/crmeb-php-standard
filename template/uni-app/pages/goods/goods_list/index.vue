@@ -39,6 +39,16 @@
 				<view class='item' :class='nows ? "font-color":""' @click='set_where(4)'>{{$t(`新品`)}}</view>
 			</view>
 			<scroll-view :scroll-top="scrollTop" scroll-y="true" class="scroll-Y" @scroll="scroll">
+				<!-- SEO文案展示区域 -->
+				<view class="seo-header" v-if="categoryInfo.seo_description || categoryInfo.seo_title">
+					<view class="seo-title" v-if="categoryInfo.seo_title">
+						{{ categoryInfo.seo_title }}
+					</view>
+					<view class="seo-description" v-if="categoryInfo.seo_description">
+						{{ categoryInfo.seo_description }}
+					</view>
+				</view>
+
 				<!-- 分页按钮 - 顶部 -->
 				<view class="pagination-top" v-if="productList.length > 0">
 					<view class="pagination-button pagination-nav" @click="prevPage" :class="{ disabled: where.page <= 1 }">
@@ -127,9 +137,9 @@
 						««
 					</view>
 					<view class="page-numbers">
-						<view 
-							class="page-number" 
-							v-for="page in pageNumbers" 
+						<view
+							class="page-number"
+							v-for="page in pageNumbers"
 							:key="page"
 							:class="{ active: page === where.page }"
 							@click="goToPageNumber(page)"
@@ -178,7 +188,8 @@
 	import home from '@/components/home';
 	import {
 		getProductslist,
-		getProductHot
+		getProductHot,
+		getCategoryList
 	} from '@/api/store.js';
 	import recommend from '@/components/recommend';
 	import {
@@ -200,7 +211,7 @@
 				const total = this.maxPage;
 				const pages = [];
 				const showPages = 5; // 显示5个页码按钮
-				
+
 				if (total <= showPages) {
 					// 如果总页数少于等于5，显示所有页码
 					for (let i = 1; i <= total; i++) {
@@ -210,25 +221,25 @@
 					// 计算起始页码：当前页居中显示
 					let start = current - Math.floor(showPages / 2);
 					let end = start + showPages - 1;
-					
+
 					// 如果起始页码小于1，从1开始
 					if (start < 1) {
 						start = 1;
 						end = showPages;
 					}
-					
+
 					// 如果结束页码超过总页数，调整起始页码
 					if (end > total) {
 						end = total;
 						start = total - showPages + 1;
 					}
-					
+
 					// 确保总是显示5个页码
 					for (let i = start; i <= end; i++) {
 						pages.push(i);
 					}
 				}
-				
+
 				return pages;
 			}
 		},
@@ -269,7 +280,12 @@
 				},
 				scrollTopShow: false,
 				jumpPage: '',
-				maxPage: 1
+				maxPage: 1,
+				categoryInfo: {
+					seo_title: '',
+					seo_keywords: '',
+					seo_description: ''
+				}
 			};
 		},
 		onLoad: function(options) {
@@ -284,6 +300,11 @@
 			this.title = options.title || '';
 			this.$set(this.where, 'keyword', options.searchValue || '');
 			this.$set(this.where, 'productId', options.productId || '');
+			// 获取分类SEO信息
+			const categoryId = options.sid || options.cid;
+			if (categoryId) {
+				this.getCategoryInfo(categoryId);
+			}
 			this.get_product_list();
 		},
 		methods: {
@@ -389,7 +410,7 @@
 				that.loadend = loadend;
 				that.loading = false;
 				that.$set(that, 'productList', list);
-				
+
 				// 计算最大页数
 				if (list.length > 0) {
 					// 如果返回的数据长度等于limit，说明可能还有更多页
@@ -404,7 +425,7 @@
 					// 如果没有数据，设置为当前页
 					that.maxPage = that.where.page;
 				}
-				
+
 				if (!that.productList.length) this.get_host_product();
 				// 数据加载完成后再滚动到顶部
 				if (needScrollTop) {
@@ -474,6 +495,36 @@
 			this.scrollTop = 0;
 			this.old.scrollTop = 0;
 		});
+	},
+	// 获取分类SEO信息
+	getCategoryInfo: function(categoryId) {
+		if (!categoryId) return;
+
+		getCategoryList().then(res => {
+			const categories = res.data || [];
+			// 查找当前分类
+			const category = this.findCategoryById(categories, categoryId);
+			if (category) {
+				this.categoryInfo = {
+					seo_title: category.seo_title || '',
+					seo_keywords: category.seo_keywords || '',
+					seo_description: category.seo_description || ''
+				};
+			}
+		}).catch(err => {
+			console.log('获取分类SEO信息失败', err);
+		});
+	},
+	// 递归查找分类
+	findCategoryById: function(categories, id) {
+		for (let cat of categories) {
+			if (cat.id == id) return cat;
+			if (cat.children && cat.children.length > 0) {
+				const found = this.findCategoryById(cat.children, id);
+				if (found) return found;
+			}
+		}
+		return null;
 	}
 	},
 	onPullDownRefresh() {},
@@ -487,6 +538,28 @@
 </script>
 
 <style scoped lang="scss">
+	.seo-header {
+		background: #fff;
+		padding: 20rpx 24rpx;
+		margin: 0;
+		border-bottom: 1rpx solid #f0f0f0;
+	}
+
+	.seo-title {
+		font-size: 28rpx;
+		font-weight: 500;
+		color: #333;
+		line-height: 1.6;
+	}
+
+	.seo-description {
+		margin-top: 6rpx;
+		font-size: 24rpx;
+		color: #888;
+		line-height: 1.8;
+	}
+
+
 	.scroll-Y {
 		margin-top: 172rpx;
 		height: calc(100vh - 172rpx);
