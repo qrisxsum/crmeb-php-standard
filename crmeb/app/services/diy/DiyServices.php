@@ -322,6 +322,87 @@ class DiyServices extends BaseServices
         return $this->dao->value(['template_name' => $name, 'type' => 1], 'value');
     }
 
+    /**
+     * 获取分类页完整配置
+     * @return array
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\DbException
+     * @throws \think\db\exception\ModelNotFoundException
+     */
+    public function getCategoryConfig(): array
+    {
+        $value = $this->dao->value(['template_name' => 'category', 'type' => 1], 'value');
+
+        // 兼容旧数据格式（纯数字）
+        if (is_numeric($value)) {
+            return [
+                'status' => (int)$value,
+                'navigation' => [
+                    'enabled' => false,
+                    'title' => '相关配套',
+                    'items' => []
+                ]
+            ];
+        }
+
+        // 解析JSON格式
+        $config = json_decode($value, true);
+        if (!$config) {
+            return [
+                'status' => 1,
+                'navigation' => [
+                    'enabled' => false,
+                    'title' => '相关配套',
+                    'items' => []
+                ]
+            ];
+        }
+
+        // 确保navigation字段存在
+        if (!isset($config['navigation'])) {
+            $config['navigation'] = [
+                'enabled' => false,
+                'title' => '相关配套',
+                'items' => []
+            ];
+        }
+
+        return $config;
+    }
+
+    /**
+     * 保存分类页完整配置
+     * @param array $data
+     * @return bool
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\DbException
+     * @throws \think\db\exception\ModelNotFoundException
+     */
+    public function saveCategoryConfig(array $data): bool
+    {
+        $info = $this->dao->get(['template_name' => 'category', 'type' => 1]);
+
+        if (!$info) {
+            throw new AdminException(100026);
+        }
+
+        // 构建存储数据
+        $saveData = [
+            'status' => $data['status'],
+        ];
+
+        // 保存导航配置
+        if (!empty($data['navigation'])) {
+            $saveData['navigation'] = $data['navigation'];
+        }
+
+        $info->value = json_encode($saveData, JSON_UNESCAPED_UNICODE);
+        $info->update_time = time();
+        $info->version = uniqid();  // 更新版本号触发前端缓存刷新
+
+        return $info->save();
+    }
+
     public function getMemberData()
     {
         $info = $this->dao->get(['template_name' => 'member', 'type' => 1]);

@@ -76,6 +76,12 @@
 				<image :src="emptyImg" mode="aspectFit" class="empty-img" />
 				<text class="empty-text">{{ $t('暂无分类数据') }}</text>
 			</view>
+
+			<!-- 站内导航模块 -->
+			<categoryNavigation
+				v-if="navigationConfig && navigationConfig.enabled && viewMode === 'level1'"
+				:config="navigationConfig"
+			/>
 		</scroll-view>
 	</view>
 </template>
@@ -84,12 +90,14 @@
 import { getCategoryList } from '@/api/store.js';
 import { getDiy } from '@/api/api.js';
 import swiperBg from '@/pages/index/components/swiperBg.vue';
+import categoryNavigation from './components/categoryNavigation.vue';
 import colors from '@/mixins/color';
 
 export default {
 	name: 'goodsCate4',
 	components: {
-		swiperBg
+		swiperBg,
+		categoryNavigation
 	},
 	mixins: [colors],
 	props: {
@@ -111,6 +119,9 @@ export default {
 			// 推广配置
 			diyConfig: null,        // swiperBg 组件配置
 
+			// 导航配置
+			navigationConfig: null, // 站内导航配置
+
 			// UI 控制
 			loading: false,
 			scrollHeight: 'calc(100vh - 200rpx)',
@@ -126,18 +137,29 @@ export default {
 		// 监听分类数据更新事件
 		uni.$on('uploadCatData', () => {
 			this.loadCategoryData(true);
+			this.loadNavigationConfig();
 		});
 	},
 	methods: {
 		async init() {
 			try {
-				// 并行加载分类数据和DIY配置
+				// 并行加载分类数据、DIY配置和导航配置
 				await Promise.all([
 					this.loadCategoryData(false),
 					this.loadDiyConfig()
 				]);
+				// 加载导航配置
+				this.loadNavigationConfig();
 			} catch (error) {
 				console.error('初始化失败', error);
+			}
+		},
+
+		// 加载导航配置
+		loadNavigationConfig() {
+			const config = uni.getStorageSync('category_navigation');
+			if (config && config.enabled) {
+				this.navigationConfig = config;
 			}
 		},
 

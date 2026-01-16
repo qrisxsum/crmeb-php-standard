@@ -29,6 +29,8 @@
 					<coupon v-if="item.name == 'coupon'" :dataConfig="item" @changeLogin="changeLogin"></coupon>
 					<!-- 客户服务 -->
 					<customerService v-if="item.name == 'customerService'" :dataConfig="item"></customerService>
+					<!-- 联系我们社交浮窗 -->
+					<socialContact v-if="item.name == 'socialContact'" :dataConfig="item"></socialContact>
 					<!-- 商品列表 -->
 					<goodList ref="goodLists" v-if="item.name == 'goodList'" :dataConfig="item"></goodList>
 					<guide v-if="item.name == 'guide'" :dataConfig="item"></guide>
@@ -146,6 +148,7 @@ import bargain from './components/bargain';
 import blankPage from './components/blankPage';
 import combination from './components/combination';
 import customerService from './components/customerService';
+import socialContact from './components/socialContact';
 import goodList from './components/goodList';
 import guide from './components/guide';
 import liveBroadcast from './components/liveBroadcast';
@@ -226,6 +229,7 @@ export default {
 		blankPage,
 		combination,
 		customerService,
+		socialContact,
 		goodList,
 		guide,
 		liveBroadcast,
