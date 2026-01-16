@@ -129,6 +129,25 @@ class DiyProServices extends BaseServices
                             }
                         }
                         break;
+                    case 'posterGoods'://海报商品组
+                        if (isset($item['posterList']['list']) && $item['posterList']['list']) {
+                            $posterList = $item['posterList']['list'];
+                            foreach ($posterList as &$poster) {
+                                // 获取海报关联的商品数据
+                                if (isset($poster['goodsIds']) && is_array($poster['goodsIds']) && count($poster['goodsIds'])) {
+                                    $where = [
+                                        'ids' => $poster['goodsIds'],
+                                        'is_show' => 1,
+                                        'is_del' => 0
+                                    ];
+                                    $poster['goodsList'] = $productServices->getSearchList($where, 0, 3, ['id,store_name,cate_id,image,IFNULL(sales, 0) + IFNULL(ficti, 0) as sales,price,stock,activity,ot_price,spec_type,recommend_image,unit_name,is_vip,vip_price']);
+                                } else {
+                                    $poster['goodsList'] = [];
+                                }
+                            }
+                            $item['posterList']['list'] = $posterList;
+                        }
+                        break;
                 }
             }
         }

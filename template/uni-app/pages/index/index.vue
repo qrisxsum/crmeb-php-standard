@@ -69,6 +69,8 @@
 					<signIn v-if="item.name == 'signIn'" :dataConfig="item"></signIn>
 					<hotspot v-if="item.name == 'hotspot'" :dataConfig="item"></hotspot>
 					<follow v-if="item.name == 'follow'" :dataConfig="item"></follow>
+					<!-- 海报商品组 -->
+					<posterGoods v-if="item.name == 'posterGoods'" :dataConfig="item"></posterGoods>
 				</block>
 				<!-- 分类商品模块 -->
 				<!-- #ifndef  APP-PLUS -->
@@ -170,6 +172,7 @@ import videos from './components/videos';
 import signIn from './components/signIn';
 import hotspot from './components/hotspot';
 import follow from './components/follow';
+import posterGoods from './components/posterGoods';
 import waterfallsFlow from '@/components/WaterfallsFlow/WaterfallsFlow.vue';
 import emptyPage from '@/components/emptyPage.vue';
 // #ifdef MP
@@ -244,6 +247,7 @@ export default {
 		ranking,
 		presale,
 		pointsMall,
+		posterGoods,
 		// #ifndef APP
 		richText,
 		videos,
