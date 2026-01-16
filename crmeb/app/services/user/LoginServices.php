@@ -202,6 +202,9 @@ class LoginServices extends BaseServices
         if ($this->dao->getOne(['account' => $phone, 'is_del' => 0]) && $type == 'register') {
             throw new ApiException(410028);
         }
+        if ($type == 'login' && !$this->dao->getOne(['account|phone' => $phone, 'is_del' => 0], 'uid')) {
+            throw new ApiException(411604);
+        }
         $code = rand(100000, 999999);
         $data['code'] = $code;
         $data['time'] = $time;
@@ -222,10 +225,14 @@ class LoginServices extends BaseServices
      * @throws \think\db\exception\DbException
      * @throws \think\db\exception\ModelNotFoundException
      */
-    public function register($account, $password, $spread, $user_type = 'h5')
+    public function register($account, $password, $spread, $user_type = 'h5', array $extend = [])
     {
         if ($this->dao->getOne(['account|phone' => $account, 'is_del' => 0])) {
             throw new ApiException(410028);
+        }
+        $email = trim((string)($extend['email'] ?? ''));
+        if ($email !== '' && $this->dao->getOne(['email' => $email, 'is_del' => 0], 'uid')) {
+            throw new ApiException(411602);
         }
         /** @var UserServices $userServices */
         $userServices = app()->make(UserServices::class);
@@ -233,6 +240,8 @@ class LoginServices extends BaseServices
         $data['account'] = $account;
         $data['pwd'] = md5((string)$password);
         $data['phone'] = $phone;
+        $data['email'] = $email !== '' ? $email : null;
+        $data['sex'] = (int)($extend['sex'] ?? 0);
         if ($spread) {
             $data['spread_uid'] = $spread;
             $data['spread_time'] = time();
@@ -241,7 +250,7 @@ class LoginServices extends BaseServices
             $data['agent_id'] = $spreadInfo['agent_id'];
             $data['staff_id'] = $spreadInfo['staff_id'];
         }
-        $data['real_name'] = '';
+        $data['real_name'] = trim((string)($extend['real_name'] ?? ''));
         $data['birthday'] = 0;
         $data['card_id'] = '';
         $data['mark'] = '';
@@ -251,7 +260,8 @@ class LoginServices extends BaseServices
         $data['add_ip'] = app('request')->ip();
         $data['last_time'] = time();
         $data['last_ip'] = app('request')->ip();
-        $data['nickname'] = substr_replace($account, '****', 3, 4);
+        $nickname = trim((string)($extend['nickname'] ?? ''));
+        $data['nickname'] = $nickname !== '' ? $nickname : substr_replace($account, '****', 3, 4);
         $data['avatar'] = sys_config('h5_avatar');
         $data['city'] = '';
         $data['language'] = '';
@@ -292,6 +302,48 @@ class LoginServices extends BaseServices
     }
 
     /**
+     * 判断邮箱是否已存在
+     * @param string $email
+     * @return bool
+     */
+    public function existsEmail(string $email): bool
+    {
+        if ($email === '') return false;
+        return (bool)$this->dao->getOne(['email' => $email, 'is_del' => 0], 'uid');
+    }
+
+    /**
+     * 邮箱验证码登录
+     * @param string $email
+     * @param int $spread
+     * @param int $agent_id
+     * @return array
+     */
+    public function emailLogin(string $email, int $spread = 0, int $agent_id = 0): array
+    {
+        $user = $this->dao->getOne(['email' => $email, 'is_del' => 0]);
+        if (!$user) {
+            throw new ApiException(411603);
+        }
+        if (!$user['status']) {
+            throw new ApiException(410027);
+        }
+
+        // 更新用户信息（推广关系/最后登录信息）
+        if ($agent_id) {
+            $this->updateUserInfo(['code' => $agent_id, 'is_staff' => 1], $user);
+        } else {
+            $this->updateUserInfo(['code' => $spread], $user);
+        }
+
+        $token = $this->createToken((int)$user['uid'], 'api');
+        if ($token) {
+            return ['token' => $token['token'], 'expires_time' => $token['params']['exp']];
+        }
+        throw new ApiException(410019);
+    }
+
+    /**
      * 重置密码
      * @param $account
      * @param $password
@@ -327,10 +379,8 @@ class LoginServices extends BaseServices
         //数据库查询
         $user = $this->dao->getOne(['account|phone' => $phone, 'is_del' => 0]);
         if (!$user) {
-            $user = $this->register($phone, '123456', $spread, $user_type);
-            if (!$user) {
-                throw new ApiException(410034);
-            }
+            // 不再自动注册：必须先走注册流程完善资料（email/昵称/姓名/性别等）
+            throw new ApiException(411604);
         }
 
         if (!$user->status)

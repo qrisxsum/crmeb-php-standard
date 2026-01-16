@@ -44,6 +44,7 @@ docs/
 /template/uni-app/unpackage/
 /template/uni-app/.hbuilderx/
 /template/pc/node_modules/
+/template/pc/.nuxt/
 /template/pc/dist/
 /template/pc/nuxt-dist/
 

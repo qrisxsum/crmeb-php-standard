@@ -139,6 +139,25 @@ module.exports = {
             propertyName: false
           }
         }
+      },
+      local4: {
+        _scheme: 'local',
+        endpoints: {
+          login: {
+            url: '/login/email',
+            method: 'post',
+            propertyName: 'token'
+          },
+          logout: {
+            url: '/logout',
+            method: 'get'
+          },
+          user: {
+            url: 'user',
+            method: 'get',
+            propertyName: false
+          }
+        }
       }
     },
     redirect: {

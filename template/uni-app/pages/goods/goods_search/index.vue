@@ -97,7 +97,7 @@
 			};
 		},
 		onShow: function() {
-			// this.getRoutineHotSearch();
+			this.getRoutineHotSearch();
 			this.getHostProduct();
 			this.searchList();
 			try {
@@ -154,9 +154,26 @@
 				}
 			},
 			getRoutineHotSearch: function() {
-				let that = this;
 				getSearchKeyword().then(res => {
-					that.$set(that, 'hotSearchList', res.data);
+					// 后端当前返回的是字符串数组，这里适配为前端使用的 { val: '关键词' } 结构
+					let list = [];
+					if (Array.isArray(res.data)) {
+						list = res.data.map(item => {
+							// 兼容多种返回结构
+							if (typeof item === 'string') {
+								return { val: item };
+							} else if (item && typeof item === 'object') {
+								if (item.val !== undefined) return item;
+								if (item.title !== undefined) return { val: item.title };
+							}
+							return { val: '' };
+						}).filter(i => i.val);
+					}
+					this.$set(this, 'hotSearchList', list);
+					// 同步更新本地缓存，避免旧结构导致不显示
+					try {
+						uni.setStorageSync('hotList', list);
+					} catch (err) {}
 				});
 			},
 			getProductList: function() {

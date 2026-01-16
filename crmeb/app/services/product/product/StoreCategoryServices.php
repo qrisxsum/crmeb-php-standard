@@ -168,6 +168,14 @@ class StoreCategoryServices extends BaseServices
         $f[] = Form::frameImage('big_pic', '分类大图(468*340)', Url::buildUrl(config('app.admin_prefix', 'admin') . '/widget.images/index', array('fodder' => 'big_pic')), $info['big_pic'] ?? '')->icon('el-icon-picture-outline')->width('950px')->height('560px')->props(['footer' => false]);
         $f[] = Form::number('sort', '排序', (int)($info['sort'] ?? 0))->min(0)->precision(0);
         $f[] = Form::radio('is_show', '状态', $info['is_show'] ?? 1)->options([['label' => '显示', 'value' => 1], ['label' => '隐藏', 'value' => 0]]);
+        // SEO优化字段（仅二级分类显示）
+        $pid = isset($info['pid']) ? (int)$info['pid'] : 0;
+        if ($pid > 0) {
+            // 只有二级分类（pid > 0）才显示SEO字段
+            $f[] = Form::input('seo_title', 'SEO标题', $info['seo_title'] ?? '')->placeholder('用于搜索引擎展示的标题，留空则使用分类名称')->maxlength(60);
+            $f[] = Form::input('seo_keywords', 'SEO关键词', $info['seo_keywords'] ?? '')->placeholder('多个关键词用英文逗号分隔')->maxlength(200);
+            $f[] = Form::textarea('seo_description', 'SEO描述', $info['seo_description'] ?? '')->placeholder('用于搜索引擎展示的描述，建议80-200字')->rows(4);
+        }
         return $f;
     }
 
@@ -337,7 +345,7 @@ class StoreCategoryServices extends BaseServices
     {
         [$page, $limit] = $this->getPageValue();
         if ($limit) {
-            return $this->dao->getALlByIndex($where, 'id,cate_name,pid,pic', $limit);
+            return $this->dao->getALlByIndex($where, 'id,cate_name,pid,pic,seo_title,seo_keywords,seo_description', $limit);
         } else {
             return CacheService::remember('CATEGORY', function () {
                 return $this->dao->getCategory();

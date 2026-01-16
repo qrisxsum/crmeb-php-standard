@@ -35,6 +35,8 @@ Route::group(function () {
     Route::get('verify_code', 'v1.LoginController/verifyCode')->name('verifyCode')->option(['real_name' => '获取发短信的key']);
     //手机号登录
     Route::post('login/mobile', 'v1.LoginController/mobile')->name('loginMobile')->option(['real_name' => '手机号登录']);
+    //邮箱验证码登录
+    Route::post('login/email', 'v1.LoginController/emailLogin')->name('loginEmail')->option(['real_name' => '邮箱验证码登录']);
     //图片验证码
     Route::get('sms_captcha', 'v1.LoginController/captcha')->name('captcha')->option(['real_name' => '图片验证码']);
     //图形验证码
@@ -43,6 +45,8 @@ Route::group(function () {
     Route::post('ajcheck', 'v1.LoginController/ajcheck')->name('ajcheck')->option(['real_name' => '图形验证码验证']);
     //手机验证码发送
     Route::post('register/verify', 'v1.LoginController/verify')->name('registerVerify')->option(['real_name' => '手机验证码发送']);
+    //邮箱验证码发送
+    Route::post('email/verify', 'v1.LoginController/emailVerify')->name('emailVerify')->option(['real_name' => '邮箱验证码发送']);
     //手机号注册
     Route::post('register', 'v1.LoginController/register')->name('register')->option(['real_name' => '手机号注册']);
     //手机号修改密码
