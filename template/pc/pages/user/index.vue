@@ -40,6 +40,21 @@
         <div class="edit-txt" @click="isPhone = true">修改</div>
       </div>
       <div class="item text-info">
+        <span class="label">邮箱：</span>
+        <span class="txt">{{ userInfo.email || "-" }}</span>
+        <div class="edit-txt" @click="isEmail = true">修改</div>
+      </div>
+      <div class="item text-info">
+        <span class="label">真实姓名：</span>
+        <span class="txt">{{ userInfo.real_name || "-" }}</span>
+        <div class="edit-txt" @click="editRealName">修改</div>
+      </div>
+      <div class="item text-info">
+        <span class="label">性别：</span>
+        <span class="txt">{{ sexText }}</span>
+        <div class="edit-txt" @click="openSexDialog">修改</div>
+      </div>
+      <div class="item text-info">
         <span class="label">我的ID：</span>
         <span class="txt">{{ userInfo.uid }}</span>
       </div>
@@ -137,6 +152,63 @@
         </span>
       </div>
     </el-dialog>
+    <!-- 修改邮箱 -->
+    <el-dialog
+      title="修改邮箱"
+      :visible.sync="isEmail"
+      width="545px"
+      :before-close="handleClose"
+    >
+      <div class="form-box">
+        <div class="input-item">
+          <el-input placeholder="请输入新邮箱" v-model="emailData.email"></el-input>
+        </div>
+        <div class="input-item">
+          <el-input placeholder="请输入验证码" v-model="emailData.code"></el-input>
+          <el-button
+            plain
+            class="code-box"
+            @click="getVerify(2)"
+            :disabled="emailDisabled"
+          >{{ emailText }}
+          </el-button>
+        </div>
+        <div class="input-item">
+          <el-input
+            placeholder="请输入登录密码"
+            type="password"
+            v-model="emailData.password"
+          ></el-input>
+        </div>
+      </div>
+      <div class="dialog-footer">
+        <span slot="footer">
+          <el-button type="primary" @click="bindEmail">确 定</el-button>
+          <el-button @click="handleClose">取 消</el-button>
+        </span>
+      </div>
+    </el-dialog>
+    <!-- 修改性别 -->
+    <el-dialog
+      title="修改性别"
+      :visible.sync="isSex"
+      width="545px"
+      :before-close="handleClose"
+    >
+      <div class="form-box">
+        <el-radio-group v-model="sexValue">
+          <el-radio :label="0">保密</el-radio>
+          <el-radio :label="1">男</el-radio>
+          <el-radio :label="2">女</el-radio>
+        </el-radio-group>
+      </div>
+      <div class="dialog-footer">
+        <span slot="footer">
+          <el-button type="primary" @click="bindSex">确 定</el-button>
+          <el-button @click="handleClose">取 消</el-button>
+        </span>
+      </div>
+    </el-dialog>
     <Verify
       v-if="verifyModal"
       @success="success"
@@ -177,9 +249,30 @@ export default {
         code: "",
         newPhone: "",
       },
+      isEmail: false,
+      emailData: {
+        email: "",
+        code: "",
+        password: ""
+      },
+      emailDisabled: false,
+      emailText: "获取验证码",
+      emailRunTime: null,
+      emailCodeEndAt: 0,
+      isSex: false,
+      sexValue: 0,
       keyCode: "",
       modalType: 0
     };
+  },
+  computed: {
+    sexText() {
+      const sex = Number(this.userInfo.sex);
+      if (sex === 1) return "男";
+      if (sex === 2) return "女";
+      if (sex === 0) return "保密";
+      return "-";
+    }
   },
   fetch({store}) {
     store.commit("isHeader", true);
@@ -199,6 +292,17 @@ export default {
     };
     this.userInfo = this.$auth.user;
     this.getCodeKey();
+
+    const endAt = Number(window.localStorage.getItem("pc_email_verify_code_end_at") || 0);
+    if (endAt > Date.now()) {
+      this.emailCodeEndAt = endAt;
+      this.startEmailCountdown();
+    } else if (endAt) {
+      window.localStorage.removeItem("pc_email_verify_code_end_at");
+    }
+  },
+  beforeDestroy() {
+    if (this.emailRunTime) clearInterval(this.emailRunTime);
   },
   methods: {
     getVerify(type) {
@@ -267,6 +371,45 @@ export default {
         .catch(() => {
         });
     },
+    // 修改真实姓名
+    editRealName() {
+      MessageBox.prompt("请输入真实姓名", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        inputPattern: /\S/,
+        inputErrorMessage: "真实姓名不能为空",
+      })
+        .then(({value}) => {
+          this.$axios
+            .post("user/edit", {real_name: value})
+            .then((res) => {
+              let jsonData = JSON.parse(JSON.stringify(this.userInfo));
+              jsonData.real_name = value;
+              this.$auth.$storage.setUniversal("user", jsonData);
+              this.userInfo = this.$auth.user;
+              this.$message.success("修改成功");
+            });
+        })
+        .catch(() => {
+        });
+    },
+    openSexDialog() {
+      const sex = Number(this.userInfo.sex);
+      this.sexValue = [0, 1, 2].includes(sex) ? sex : 0;
+      this.isSex = true;
+    },
+    bindSex() {
+      this.$axios
+        .post("user/edit", {sex: this.sexValue})
+        .then((res) => {
+          let jsonData = JSON.parse(JSON.stringify(this.userInfo));
+          jsonData.sex = this.sexValue;
+          this.$auth.$storage.setUniversal("user", jsonData);
+          this.userInfo = this.$auth.user;
+          this.$message.success("修改成功");
+          this.isSex = false;
+        });
+    },
     // 退出登录
     async longOut() {
       let val = this.$cookies.get("auth.strategy");
@@ -302,15 +445,40 @@ export default {
     handleClose() {
       this.isPassword = false;
       this.isPhone = false;
+      this.isEmail = false;
+      this.isSex = false;
       this.passwordData.phone = "";
       this.passwordData.code = "";
       this.passwordData.newPassword = "";
       this.phoneData.code = "";
       this.phoneData.newPhone = "";
+      this.emailData.email = "";
+      this.emailData.code = "";
+      this.emailData.password = "";
     },
     // 发送验证码
     async getCode(data) {
       let that = this;
+      if (that.modalType === 2) {
+        if (!that.emailData.email) return Message.error("请填写新邮箱");
+        await this.$axios
+          .post("/email/verify", {
+            email: that.emailData.email,
+            type: "register",
+            key: that.keyCode,
+            captchaType: "blockPuzzle",
+            captchaVerification: data.captchaVerification
+          })
+          .then((res) => {
+            Message.success(res.msg);
+            that.sendEmailCode();
+          })
+          .catch((res) => {
+            Message.error(res);
+          });
+        return;
+      }
+
       await this.$axios
         .post("/register/verify", {
           phone: that.modalType ? that.phoneData.newPhone : that.userInfo.phone,
@@ -326,6 +494,55 @@ export default {
         .catch((res) => {
           Message.error(res);
         });
+    },
+    sendEmailCode() {
+      if (this.emailDisabled) return;
+      const seconds = 60;
+      this.emailCodeEndAt = Date.now() + seconds * 1000;
+      window.localStorage.setItem("pc_email_verify_code_end_at", String(this.emailCodeEndAt));
+      this.startEmailCountdown();
+    },
+    startEmailCountdown() {
+      if (this.emailRunTime) clearInterval(this.emailRunTime);
+      this.emailDisabled = true;
+      const tick = () => {
+        const remain = Math.ceil((this.emailCodeEndAt - Date.now()) / 1000);
+        if (remain <= 0) {
+          if (this.emailRunTime) clearInterval(this.emailRunTime);
+          this.emailRunTime = null;
+          this.emailCodeEndAt = 0;
+          window.localStorage.removeItem("pc_email_verify_code_end_at");
+          this.emailDisabled = false;
+          this.emailText = "重新获取";
+          return;
+        }
+        this.emailText = "剩余 " + remain + "s";
+      };
+      tick();
+      this.emailRunTime = setInterval(tick, 1000);
+    },
+    bindEmail() {
+      if (!this.emailData.email) return Message.error("请填写新邮箱");
+      if (!this.emailData.code) return Message.error("请填写验证码");
+      if (!this.emailData.password) return Message.error("请填写登录密码");
+      this.$axios
+        .post("user/edit", {
+          email: this.emailData.email,
+          email_captcha: this.emailData.code,
+          password: this.emailData.password
+        })
+        .then((res) => {
+          let jsonData = JSON.parse(JSON.stringify(this.userInfo));
+          jsonData.email = this.emailData.email;
+          this.$auth.$storage.setUniversal("user", jsonData);
+          this.userInfo = this.$auth.user;
+          this.$message.success("修改成功");
+          this.isEmail = false;
+          this.emailData.email = "";
+          this.emailData.code = "";
+          this.emailData.password = "";
+        })
+        .catch((err) => Message.error(err));
     },
     // 绑定新手机号码
     async bindNewPhone() {

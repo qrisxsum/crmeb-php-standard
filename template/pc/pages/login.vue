@@ -25,9 +25,137 @@
       </div>
     </div>
     <div class="loginBg min_wrapper_1200">
+      <div class="wrapper" v-show="current === 3">
+        <div class="title">
+          邮箱验证码登录
+          <span
+            @click="ewmLogin"
+            v-if="appidNum"
+            class="iconfont icon-weixindenglu1"
+          ></span>
+        </div>
+        <div class="item phone acea-row row-middle">
+          <input type="text" placeholder="请输入邮箱" v-model="email" />
+        </div>
+        <div class="item verificat acea-row row-between-wrapper">
+          <input type="text" placeholder="请输入验证码" v-model="captcha" />
+          <button
+            class="code font-color"
+            :disabled="disabled"
+            :class="disabled === true ? 'on' : ''"
+            @click="getVerify"
+          >
+            {{ text }}
+          </button>
+        </div>
+        <div class="isAgree">
+          <el-checkbox v-model="agreement"></el-checkbox
+          ><span class="agree"
+            >我已阅读并同意<span class="agreement" @click="agreementTap(4)"
+              >《用户协议》</span
+            >和<span class="agreement" @click="agreementTap(3)"
+              >《隐私协议》</span
+            ></span
+          >
+        </div>
+        <div class="signIn bg-color" @click="loginEmail">登录</div>
+        <div class="login-switch">
+          <span class="switch-item" @click="current = 1">手机登录</span>
+          <span class="switch-divider">|</span>
+          <span class="switch-item" @click="current = 2">账号登录</span>
+        </div>
+        <div class="register-link">
+          <span class="register-text">还没有账号？</span>
+          <span class="register-btn font-color" @click="current = 4">立即注册</span>
+        </div>
+      </div>
+		      <div class="wrapper wrapper-register" v-show="current === 4">
+		        <div class="title">
+		          注册
+	          <span
+            @click="ewmLogin"
+            v-if="appidNum"
+            class="iconfont icon-weixindenglu1"
+          ></span>
+        </div>
+		        <div class="item phone acea-row row-middle" v-if="registerVerifyType === 'phone'">
+		          <div class="number">+86</div>
+		          <input type="text" placeholder="请输入手机号" v-model="account" />
+		        </div>
+		        <div class="item phone acea-row row-middle" v-else>
+		          <input type="text" placeholder="请输入邮箱" v-model="email" />
+		        </div>
+		        <div class="verify-switch">
+		          <span
+		            class="switch-item"
+	            :class="{ on: registerVerifyType === 'phone' }"
+	            @click="registerVerifyType = 'phone'"
+	          >
+	            手机验证码
+	          </span>
+	          <span class="switch-divider">|</span>
+	          <span
+	            class="switch-item"
+	            :class="{ on: registerVerifyType === 'email' }"
+	            @click="registerVerifyType = 'email'"
+	          >
+	            邮箱验证码
+	          </span>
+		        </div>
+		        <div class="item verificat acea-row row-between-wrapper">
+		          <input type="text" placeholder="请输入验证码" v-model="captcha" />
+		          <button
+	            class="code font-color"
+	            :disabled="disabled"
+	            :class="disabled === true ? 'on' : ''"
+            @click="getVerify"
+          >
+            {{ text }}
+          </button>
+		        </div>
+	        <div class="item phone acea-row row-middle" v-if="registerVerifyType === 'phone'">
+	          <input type="text" placeholder="请输入邮箱" v-model="email" />
+	        </div>
+	        <div class="item phone acea-row row-middle" v-else>
+	          <div class="number">+86</div>
+	          <input type="text" placeholder="请输入手机号" v-model="account" />
+	        </div>
+	        <div class="item phone acea-row row-middle">
+	          <input type="text" placeholder="请输入昵称" v-model="nickname" />
+	        </div>
+        <div class="item phone acea-row row-middle">
+          <input type="text" placeholder="请输入真实姓名" v-model="real_name" />
+        </div>
+	        <div class="item phone acea-row row-middle">
+	          <select v-model="sex" class="sexSelect" :class="{ 'is-placeholder': sex === '' }">
+	            <option disabled value="">请选择性别</option>
+	            <option :value="0">保密</option>
+	            <option :value="1">男</option>
+	            <option :value="2">女</option>
+	          </select>
+	        </div>
+        <div class="item pwd">
+          <input type="password" placeholder="请输入密码" v-model="password" />
+        </div>
+        <div class="isAgree">
+          <el-checkbox v-model="agreement"></el-checkbox
+          ><span class="agree"
+            >我已阅读并同意<span class="agreement" @click="agreementTap(4)"
+              >《用户协议》</span
+            >和<span class="agreement" @click="agreementTap(3)"
+              >《隐私协议》</span
+            ></span
+          >
+        </div>
+        <div class="signIn bg-color" @click="doRegister">注册</div>
+        <div class="register-link">
+          <span class="register-text">已有账号？</span>
+          <span class="register-btn font-color" @click="current = 3">返回登录</span>
+        </div>
+      </div>
       <div class="wrapper" v-show="current === 1">
         <div class="title">
-          快速登录/注册
+          手机验证码登录
           <!--@click="current = 3"-->
           <span
             @click="ewmLogin"
@@ -61,8 +189,16 @@
             ></span
           >
         </div>
-        <div class="signIn bg-color" @click="loginMobile">登录/注册</div>
-        <div class="fastLogin font-color" @click="current = 2">账号登录</div>
+        <div class="signIn bg-color" @click="loginMobile">登录</div>
+        <div class="login-switch">
+          <span class="switch-item" @click="current = 3">邮箱登录</span>
+          <span class="switch-divider">|</span>
+          <span class="switch-item" @click="current = 2">账号登录</span>
+        </div>
+        <div class="register-link">
+          <span class="register-text">还没有账号？</span>
+          <span class="register-btn font-color" @click="current = 4">立即注册</span>
+        </div>
       </div>
       <div class="wrapper" v-show="current === 2">
         <div class="title">
@@ -98,8 +234,14 @@
           >
         </div>
         <div class="signIn bg-color" @click="loginH5">登录</div>
-        <div class="fastLogin font-color" @click="current = 1">
-          快速登录/注册
+        <div class="login-switch">
+          <span class="switch-item" @click="current = 1">手机登录</span>
+          <span class="switch-divider">|</span>
+          <span class="switch-item" @click="current = 3">邮箱登录</span>
+        </div>
+        <div class="register-link">
+          <span class="register-text">还没有账号？</span>
+          <span class="register-btn font-color" @click="current = 4">立即注册</span>
         </div>
       </div>
       <!--<div class="wxLogin" v-if="current === 3">-->
@@ -167,13 +309,18 @@ export default {
   data() {
     return {
       verifyModal: false,
-      current: 1,
+      current: 3,
       account: "",
-      password: "",
-      captcha: "",
-      keyCode: "",
-      info: "",
-      isShow: true,
+	      email: "",
+	      password: "",
+		      captcha: "",
+		      nickname: "",
+		      real_name: "",
+		      sex: "",
+		      registerVerifyType: "phone",
+		      keyCode: "",
+		      info: "",
+		      isShow: true,
       appidNum: "",
       hosts: "",
       codes: "",
@@ -229,11 +376,10 @@ export default {
   methods: {
     keyDown(e) {
       if (e.keyCode === 13) {
-        if (this.current === 1) {
-          this.loginMobile();
-        } else if (this.current === 2) {
-          this.loginH5();
-        }
+        if (this.current === 1) this.loginMobile();
+        else if (this.current === 2) this.loginH5();
+        else if (this.current === 3) this.loginEmail();
+        else if (this.current === 4) this.doRegister();
       }
     },
     ewmLogin() {
@@ -304,10 +450,16 @@ export default {
           that.$message.error(err);
         });
     },
-    getVerify() {
-      if (!this.account) return this.$message.error("请填写手机号码");
-      if (!/^1(3|4|5|7|8|9|6)\d{9}$/i.test(this.account))
-        return this.$message.error("请输入正确的手机号码");
+	    getVerify() {
+	      if (this.current === 3 || (this.current === 4 && this.registerVerifyType === "email")) {
+	        if (!this.email) return this.$message.error("请填写邮箱");
+	        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.email))
+	          return this.$message.error("邮箱格式不正确");
+	      } else {
+        if (!this.account) return this.$message.error("请填写手机号码");
+        if (!/^1(3|4|5|7|8|9|6)\d{9}$/i.test(this.account))
+          return this.$message.error("请输入正确的手机号码");
+      }
       if (!this.agreement) return this.$message.error("请确认阅读用户协议");
       this.verifyModal = true;
       this.$nextTick(e => {
@@ -335,7 +487,43 @@ export default {
         captcha: that.captcha
       };
       await that.$auth
-        .loginWith("local2", { data: userInfo })
+	        .loginWith("local2", { data: userInfo })
+	        .then(() => {
+	          that.isShow = false;
+	          if (this.fromPath) {
+            let path = this.fromPath.split(that.$router.history.base);
+            let fromPath = path.join("");
+            that.$router.push(fromPath);
+          } else {
+            that.$router.push("/");
+          }
+	          that.$cookies.remove("fromPath");
+	        })
+	        .catch(err => {
+	          const msg = String(err || "");
+	          if (msg.includes("请先注册") || msg.includes("sign up") || msg === "411604") {
+	            that.$message.error(msg);
+	            that.current = 4;
+	            return;
+	          }
+	          that.$message.error(msg || "验证码错误");
+	        });
+	    },
+    async loginEmail() {
+      let that = this;
+      if (!that.agreement) return that.$message.error("请确认阅读用户协议");
+      if (!that.email) return that.$message.error("请填写邮箱");
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(that.email))
+        return that.$message.error("邮箱格式不正确");
+      if (!that.captcha) return that.$message.error("请填写验证码");
+      if (!/^[\w\d]+$/i.test(that.captcha))
+        return that.$message.error("请输入正确的验证码");
+      let userInfo = {
+        email: that.email,
+        captcha: that.captcha
+      };
+      await that.$auth
+        .loginWith("local4", { data: userInfo })
         .then(() => {
           that.isShow = false;
           if (this.fromPath) {
@@ -348,34 +536,116 @@ export default {
           that.$cookies.remove("fromPath");
         })
         .catch(err => {
-          that.$message.error("验证码错误");
+          that.$message.error(err);
         });
     },
-    async code(data) {
+    async doRegister() {
       let that = this;
       if (!that.agreement) return that.$message.error("请确认阅读用户协议");
       if (!that.account) return that.$message.error("请填写手机号码");
       if (!/^1(3|4|5|7|8|9|6)\d{9}$/i.test(that.account))
         return that.$message.error("请输入正确的手机号码");
-      await this.$axios
-        .post("/register/verify", {
-          phone: that.account,
-          type: "mobile",
-          key: that.keyCode,
-          captchaType: "blockPuzzle",
-          captchaVerification: data.captchaVerification
-        })
+      if (!that.captcha) return that.$message.error("请填写验证码");
+      if (!/^[\w\d]+$/i.test(that.captcha))
+        return that.$message.error("请输入正确的验证码");
+      if (!that.email) return that.$message.error("请填写邮箱");
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(that.email))
+        return that.$message.error("邮箱格式不正确");
+      if (!that.nickname) return that.$message.error("请填写昵称");
+      if (!that.real_name) return that.$message.error("请填写真实姓名");
+      if (!that.password) return that.$message.error("请填写密码");
+
+	      await this.$axios
+	        .post("/register", {
+	          account: that.account,
+	          captcha: that.captcha,
+	          password: that.password,
+	          email: that.email,
+	          nickname: that.nickname,
+	          real_name: that.real_name,
+	          sex: Number(that.sex) || 0,
+	          verify_type: that.registerVerifyType,
+	          spread: 0
+	        })
         .then(res => {
-          that.$message.success(res.msg);
-          that.sendCode();
+          that.$message.success(res.msg || "注册成功");
+          that.current = 3;
         })
         .catch(err => {
           that.$message.error(err);
         });
-    }
-  }
-};
-</script>
+    },
+    async code(data) {
+      let that = this;
+      if (!that.agreement) return that.$message.error("请确认阅读用户协议");
+      // 刷新一次 key，避免页面停留过久导致 key 过期
+      const keyCode = await this.$axios.$get("/verify_code");
+      this.keyCode = keyCode.key;
+
+	      if (this.current === 3) {
+	        await this.$axios
+	          .post("/email/verify", {
+	            email: that.email,
+	            type: "login",
+            key: that.keyCode,
+            captchaType: "blockPuzzle",
+            captchaVerification: data.captchaVerification
+          })
+          .then(res => {
+            that.$message.success(res.msg);
+            that.sendCode();
+          })
+          .catch(err => {
+            that.$message.error(err);
+          });
+	        return;
+	      }
+
+	      if (this.current === 4 && that.registerVerifyType === "email") {
+	        if (!that.email) return that.$message.error("请填写邮箱");
+	        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(that.email))
+	          return that.$message.error("邮箱格式不正确");
+	        await this.$axios
+	          .post("/email/verify", {
+	            email: that.email,
+	            type: "register",
+	            key: that.keyCode,
+	            captchaType: "blockPuzzle",
+	            captchaVerification: data.captchaVerification
+	          })
+	          .then(res => {
+	            that.$message.success(res.msg);
+	            that.sendCode();
+	          })
+	          .catch(err => {
+	            that.$message.error(err);
+	          });
+	        return;
+	      }
+
+	      await this.$axios
+	        .post("/register/verify", {
+	          phone: that.account,
+	          type: this.current === 4 ? "register" : "login",
+          key: that.keyCode,
+          captchaType: "blockPuzzle",
+          captchaVerification: data.captchaVerification
+        })
+	        .then(res => {
+	          that.$message.success(res.msg);
+	          that.sendCode();
+	        })
+	        .catch(err => {
+	          const msg = String(err || "");
+	          that.$message.error(msg);
+	          if (msg.includes("请先注册") || msg.includes("sign up") || msg === "411604") {
+	            that.current = 4;
+	          }
+	        });
+	    }
+	  }
+	};
+	</script>
 
 <style scoped lang="scss">
 .login {
@@ -464,15 +734,19 @@ export default {
         text-align: center;
       }
     }
-    .wrapper {
+	    .wrapper {
       width: 450px;
-      height: 427px;
+      height: auto;
+      min-height: 427px;
       background-color: #fff;
       position: absolute;
       top: 91px;
       right: 360px;
       text-align: center;
-      padding: 70px 0;
+      padding: 50px 0;
+      &.wrapper-register {
+        padding: 40px 0;
+      }
       .title {
         font-size: 20px;
         font-weight: 400;
@@ -485,13 +759,15 @@ export default {
           cursor: pointer;
         }
       }
-      .item {
-        width: 358px;
-        height: 50px;
-        border: 1px solid #dbdbdb;
-        margin: 0 auto;
+	      .item {
+	        width: 358px;
+	        height: 50px;
+	        border: 1px solid #dbdbdb;
+	        margin: 16px auto 0 auto;
+        &:first-of-type {
+          margin-top: 30px;
+        }
         &.phone {
-          margin-top: 34px;
           .number {
             width: 65px;
             height: 100%;
@@ -504,13 +780,11 @@ export default {
           }
         }
         &.pwd {
-          margin-top: 20px;
           input {
             width: 100%;
           }
         }
         &.verificat {
-          margin-top: 20px;
           input {
             width: 246px;
           }
@@ -525,17 +799,32 @@ export default {
             }
           }
         }
-        input {
-          padding-left: 15px;
-          height: 100%;
-          border: 0;
-          outline: none;
-        }
-      }
-      .signIn {
-        width: 358px;
-        height: 50px;
-        text-align: center;
+	        input {
+	          padding-left: 15px;
+	          height: 100%;
+	          border: 0;
+	          outline: none;
+	        }
+		        select.sexSelect {
+		          width: 100%;
+		          height: 100%;
+		          padding: 0 15px;
+		          border: 0;
+		          outline: none;
+		          background: transparent;
+		          color: #333;
+		          -webkit-appearance: none;
+		          -moz-appearance: none;
+		          appearance: none;
+		          &.is-placeholder {
+		            color: #999;
+		          }
+		        }
+	      }
+	      .signIn {
+	        width: 358px;
+	        height: 50px;
+	        text-align: center;
         line-height: 50px;
         margin: 24px auto 0 auto;
         color: #fff;
@@ -545,8 +834,65 @@ export default {
         margin-top: 14px;
         cursor: pointer;
       }
-    }
-  }
+      .login-switch {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 20px;
+        .switch-item {
+          font-size: 14px;
+          color: #666;
+          cursor: pointer;
+          padding: 0 12px;
+          &:hover {
+            color: #e93323;
+          }
+        }
+        .switch-divider {
+          color: #ddd;
+          font-size: 14px;
+        }
+      }
+		      .verify-switch {
+		        display: flex;
+		        justify-content: center;
+		        align-items: center;
+		        width: 358px;
+		        height: 34px;
+		        margin: 10px auto 0;
+		        user-select: none;
+		        .switch-item {
+		          font-size: 14px;
+		          color: #666;
+		          cursor: pointer;
+		          padding: 0 12px;
+		          &.on {
+		            color: #e93323;
+		            font-weight: 500;
+		          }
+		        }
+		        .switch-divider {
+		          color: #ddd;
+		          font-size: 14px;
+		        }
+		      }
+		      .register-link {
+	        display: flex;
+	        justify-content: center;
+	        align-items: center;
+	        margin-top: 16px;
+	        font-size: 14px;
+        .register-text {
+          color: #999;
+        }
+	        .register-btn {
+	          cursor: pointer;
+	          margin-left: 4px;
+	          font-weight: 500;
+		      }
+		    }
+	    }
+	  }
   .isAgree {
     width: 358px;
     margin: 12px auto 0 auto;

@@ -15,10 +15,14 @@ use app\Request;
 use app\services\message\notice\SmsService;
 use app\services\wechat\WechatServices;
 use think\facade\Config;
+use think\facade\Log as ThinkLog;
 use crmeb\services\CacheService;
 use app\services\user\LoginServices;
 use think\exception\ValidateException;
 use app\api\validate\user\RegisterValidates;
+use app\api\validate\user\EmailLoginValidates;
+use crmeb\services\mail\Mail as MailService;
+use think\facade\Env;
 
 /**
  * 微信小程序授权类
@@ -200,6 +204,93 @@ class LoginController
     }
 
     /**
+     * 邮箱验证码发送
+     * @param Request $request
+     * @return mixed
+     */
+    public function emailVerify(Request $request)
+    {
+        [$email, $type, $key, $captchaType, $captchaVerification] = $request->postMore([
+            ['email', ''],
+            ['type', 'login'],
+            ['key', ''],
+            ['captchaType', ''],
+            ['captchaVerification', ''],
+        ], true);
+
+        $keyName = 'sms.key.' . $key;
+        if (!CacheService::has($keyName)) return app('json')->fail(410003);
+
+        // 发送限制（占位默认值，可后续调整 config/mail.php）
+        $maxMinuteCountKey = 'mail.minute.' . $email . date('YmdHi');
+        $minuteCount = CacheService::has($maxMinuteCountKey) ? (CacheService::get($maxMinuteCountKey) ?? 0) : 0;
+        $maxMinuteCount = Config::get('mail.maxMinuteCount', 5);
+        if ($minuteCount > $maxMinuteCount) return app('json')->fail('同一邮箱每分钟最多发送' . $maxMinuteCount . '条');
+
+        $maxEmailCountKey = 'mail.email.' . $email . '.' . date('Ymd');
+        $emailCount = CacheService::has($maxEmailCountKey) ? (CacheService::get($maxEmailCountKey) ?? 0) : 0;
+        $maxEmailCount = Config::get('mail.maxEmailCount', 20);
+        if ($emailCount > $maxEmailCount) return app('json')->fail('同一邮箱每天最多发送' . $maxEmailCount . '条');
+
+        $maxIpCountKey = 'mail.ip.' . app()->request->ip() . '.' . date('Ymd');
+        $ipCount = CacheService::has($maxIpCountKey) ? (CacheService::get($maxIpCountKey) ?? 0) : 0;
+        $maxIpCount = Config::get('mail.maxIpCount', 50);
+        if ($ipCount > $maxIpCount) return app('json')->fail('同一IP每天最多发送' . $maxIpCount . '条');
+
+        // 二次验证（滑块/人机）
+        try {
+            aj_captcha_check_two($captchaType, $captchaVerification);
+        } catch (\Throwable $e) {
+            return app('json')->fail($e->getError());
+        }
+
+        try {
+            validate(EmailLoginValidates::class)->scene('code')->check(['email' => $email]);
+        } catch (ValidateException $e) {
+            return app('json')->fail($e->getError());
+        }
+
+        // 注册/登录场景校验
+        $exists = $this->services->existsEmail($email);
+        if ($type === 'register' && $exists) return app('json')->fail(411602);
+        if ($type !== 'register' && !$exists) return app('json')->fail(411603);
+
+        $time = (int)sys_config('verify_expire_time', 1);
+        $mailCode = (string)rand(100000, 999999);
+
+        // 占位邮件服务：默认写日志，后续可替换为 SMTP 等
+        /** @var MailService $mail */
+        $mail = app()->make(MailService::class);
+        $sent = $mail->sendVerifyCode($email, $mailCode, $time, ['type' => $type]);
+        if (!$sent) {
+            $error = method_exists($mail, 'getLastError') ? $mail->getLastError() : null;
+            if ($error) {
+                ThinkLog::error('[mail] emailVerify send failed', [
+                    'email' => $email,
+                    'type' => $type,
+                    'error' => $error,
+                ]);
+                if (Env::get('app_debug', false)) {
+                    return app('json')->fail($error);
+                }
+            }
+            return app('json')->fail(410008);
+        }
+
+        CacheService::set('email_code_' . $email, $mailCode, $time * 60);
+        CacheService::set($maxMinuteCountKey, (int)$minuteCount + 1, 61);
+        CacheService::set($maxEmailCountKey, (int)$emailCount + 1, 86401);
+        CacheService::set($maxIpCountKey, (int)$ipCount + 1, 86401);
+
+        // 开发环境便于联调：返回验证码（生产环境不返回）
+        if (Env::get('app_debug', false)) {
+            return app('json')->success(410007, ['code' => $mailCode]);
+        }
+
+        return app('json')->success(410007);
+    }
+
+    /**
      * H5注册新用户
      * @param Request $request
      * @return mixed
@@ -209,24 +300,58 @@ class LoginController
      */
     public function register(Request $request)
     {
-        [$account, $captcha, $password, $spread] = $request->postMore([['account', ''], ['captcha', ''], ['password', ''], ['spread', 0]], true);
+        [$account, $captcha, $password, $spread, $email, $real_name, $nickname, $sex, $verifyType] = $request->postMore([
+            ['account', ''],
+            ['captcha', ''],
+            ['password', ''],
+            ['spread', 0],
+            ['email', ''],
+            ['real_name', ''],
+            ['nickname', ''],
+            ['sex', 0],
+            ['verify_type', 'phone'],
+        ], true);
         try {
-            validate(RegisterValidates::class)->scene('register')->check(['account' => $account, 'captcha' => $captcha, 'password' => $password]);
+            validate(RegisterValidates::class)->scene('register')->check([
+                'account' => $account,
+                'captcha' => $captcha,
+                'password' => $password,
+                'email' => $email,
+                'real_name' => $real_name,
+                'nickname' => $nickname,
+                'sex' => $sex,
+            ]);
         } catch (ValidateException $e) {
             return app('json')->fail($e->getError());
+        }
+        if (!in_array($verifyType, ['phone', 'email'], true)) {
+            return app('json')->fail('verify_type 参数错误');
         }
         if (strlen(trim($password)) < 6 || strlen(trim($password)) > 32) {
             return app('json')->fail(400762);
         }
-        $verifyCode = CacheService::get('code_' . $account);
+        $verifyCode = null;
+        if ($verifyType === 'email') {
+            $verifyCode = CacheService::get('email_code_' . $email);
+        } else {
+            $verifyCode = CacheService::get('code_' . $account);
+        }
         if (!$verifyCode)
             return app('json')->fail(410009);
         $verifyCode = substr($verifyCode, 0, 6);
         if ($verifyCode != $captcha)
             return app('json')->fail(410010);
+        if ($verifyType === 'email') {
+            CacheService::delete('email_code_' . $email);
+        }
         if (md5($password) == md5('123456')) return app('json')->fail(410012);
 
-        $registerStatus = $this->services->register($account, $password, $spread, 'h5');
+        $registerStatus = $this->services->register($account, $password, $spread, 'h5', [
+            'email' => $email,
+            'real_name' => $real_name,
+            'nickname' => $nickname,
+            'sex' => (int)$sex,
+        ]);
         if ($registerStatus) {
             return app('json')->success(410013);
         }
@@ -245,7 +370,7 @@ class LoginController
     {
         [$account, $captcha, $password] = $request->postMore([['account', ''], ['captcha', ''], ['password', '']], true);
         try {
-            validate(RegisterValidates::class)->scene('register')->check(['account' => $account, 'captcha' => $captcha, 'password' => $password]);
+            validate(RegisterValidates::class)->scene('reset')->check(['account' => $account, 'captcha' => $captcha, 'password' => $password]);
         } catch (ValidateException $e) {
             return app('json')->fail($e->getError());
         }
@@ -300,6 +425,39 @@ class LoginController
         } else {
             return app('json')->fail(410002);
         }
+    }
+
+    /**
+     * 邮箱验证码登录
+     * @param Request $request
+     * @return mixed
+     */
+    public function emailLogin(Request $request)
+    {
+        [$email, $captcha, $spread, $agent_id] = $request->postMore([
+            ['email', ''],
+            ['captcha', ''],
+            ['spread', 0],
+            ['agent_id', 0],
+        ], true);
+
+        try {
+            validate(EmailLoginValidates::class)->scene('login')->check(['email' => $email, 'captcha' => $captcha]);
+        } catch (ValidateException $e) {
+            return app('json')->fail($e->getError());
+        }
+
+        $verifyCode = CacheService::get('email_code_' . $email);
+        if (!$verifyCode) return app('json')->fail(410009);
+        $verifyCode = substr((string)$verifyCode, 0, 6);
+        if ($verifyCode != $captcha) return app('json')->fail(410010);
+
+        $token = $this->services->emailLogin($email, $spread, $agent_id);
+        if ($token) {
+            CacheService::delete('email_code_' . $email);
+            return app('json')->success(410001, $token);
+        }
+        return app('json')->fail(410019);
     }
 
     /**

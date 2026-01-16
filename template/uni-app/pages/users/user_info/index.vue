@@ -19,6 +19,30 @@
 						</view>
 					</view>
 					<view class='item acea-row row-between-wrapper'>
+						<view>{{$t(`邮箱`)}}</view>
+						<navigator url="/pages/users/user_email/index" hover-class="none" class="input">
+							<text v-if="userInfo.email">{{userInfo.email}}</text>
+							<text v-else>{{$t(`点击绑定/更换邮箱`)}}</text>
+							<text class="iconfont icon-xiangyou"></text>
+						</navigator>
+					</view>
+					<view class='item acea-row row-between-wrapper'>
+						<view>{{$t(`真实姓名`)}}</view>
+						<view class='input'>
+							<input type='text' name='real_name' :maxlength="20" :value='userInfo.real_name'
+								:placeholder='$t(`填写真实姓名`)' placeholder-class='placeholder'></input>
+						</view>
+					</view>
+					<view class="item acea-row row-between-wrapper">
+						<view>{{$t(`性别`)}}</view>
+						<view class="uni-list-cell-db">
+							<picker @change="bindSexChange" :value="sexIndex" :range="sexList">
+								<view class="uni-input input">{{sexList[sexIndex]}}<text
+										class="iconfont icon-xiangyou"></text></view>
+							</picker>
+						</view>
+					</view>
+					<view class='item acea-row row-between-wrapper'>
 						<view>{{$t(`手机号码`)}}</view>
 						<!-- #ifdef MP -->
 						<button class="input" open-type="getPhoneNumber" @getphonenumber="getphonenumber"
@@ -206,7 +230,9 @@
 				version: '',
 				array: [],
 				setIndex: 0,
-				mp_is_new: this.$Cache.get('MP_VERSION_ISNEW') || false
+				mp_is_new: this.$Cache.get('MP_VERSION_ISNEW') || false,
+				sexIndex: 0,
+				sexList: [this.$t('保密'), this.$t('男'), this.$t('女')]
 			};
 		},
 		computed: mapGetters(['isLogin']),
@@ -450,6 +476,8 @@
 				let that = this;
 				getUserInfo().then(res => {
 					that.$set(that, 'userInfo', res.data);
+					const sex = Number(res.data.sex);
+					that.sexIndex = [0, 1, 2].includes(sex) ? sex : 0;
 					let switchUserInfo = res.data.switchUserInfo || [];
 					for (let i = 0; i < switchUserInfo.length; i++) {
 						if (switchUserInfo[i].uid == that.userInfo.uid) that.userIndex = i;
@@ -465,6 +493,9 @@
 					}
 					that.$set(that, "switchUserInfo", switchUserInfo);
 				});
+			},
+			bindSexChange(e) {
+				this.sexIndex = Number(e.detail.value || 0);
 			},
 			/**
 			 * 上传文件
@@ -509,7 +540,11 @@
 				if (!value.nickname) return that.$util.Tips({
 					title: that.$t(`请输入姓名`)
 				});
+				if (!value.real_name) return that.$util.Tips({
+					title: that.$t(`请填写真实姓名`)
+				});
 				value.avatar = this.userInfo.avatar;
+				value.sex = that.sexIndex;
 				userEdit(value).then(res => {
 					return that.$util.Tips({
 						title: res.msg,

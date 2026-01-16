@@ -66,6 +66,16 @@ export function registerVerify(data) {
 }
 
 /**
+ * 邮箱发送验证码
+ * @param data object email/type/key/captchaType/captchaVerification
+ */
+export function emailVerify(data) {
+	return request.post("email/verify", data, {
+		noAuth: true
+	});
+}
+
+/**
  * h5用户手机号注册
  * @param data object 用户手机号 验证码 密码
  */
@@ -81,6 +91,16 @@ export function register(data) {
  */
 export function registerReset(data) {
 	return request.post("register/reset", data, {
+		noAuth: true
+	});
+}
+
+/**
+ * 邮箱验证码登录
+ * @param data object email/captcha/spread/agent_id
+ */
+export function loginEmail(data) {
+	return request.post("login/email", data, {
 		noAuth: true
 	});
 }

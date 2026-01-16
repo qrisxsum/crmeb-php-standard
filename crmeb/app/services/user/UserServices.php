@@ -1661,6 +1661,70 @@ class UserServices extends BaseServices
     }
 
     /**
+     * 用户修改信息（支持昵称/头像/真实姓名/性别/邮箱）
+     * - 修改邮箱必须校验：新邮箱验证码 + 登录密码
+     */
+    public function editUserInfo(int $uid, array $data, array $emailChange = []): bool
+    {
+        $info = $this->dao->get(['uid' => $uid]);
+        if (!$info) {
+            throw new ApiException(400214);
+        }
+
+        $update = $data;
+
+        if ($emailChange) {
+            $email = trim((string)($emailChange['email'] ?? ''));
+            $captcha = trim((string)($emailChange['captcha'] ?? ''));
+            $password = (string)($emailChange['password'] ?? '');
+
+            if ($email !== '' && $email !== (string)$info['email']) {
+                // 校验登录密码
+                if ($info['pwd'] !== md5((string)$password)) {
+                    throw new ApiException(400597);
+                }
+
+                // 校验验证码
+                $verifyCode = CacheService::get('email_code_' . $email);
+                if (!$verifyCode) {
+                    throw new ApiException(410009);
+                }
+                $verifyCode = substr((string)$verifyCode, 0, 6);
+                if ($verifyCode != $captcha) {
+                    throw new ApiException(410010);
+                }
+
+                // 邮箱唯一
+                $exists = $this->dao->getOne(['email' => $email, 'is_del' => 0], 'uid,email');
+                if ($exists && (int)$exists['uid'] !== $uid) {
+                    throw new ApiException(411602);
+                }
+
+                $update['email'] = $email;
+                CacheService::delete('email_code_' . $email);
+            }
+        }
+
+        if (!$update) return true;
+
+        if (!$this->dao->update($uid, $update, 'uid')) {
+            throw new ApiException(100007);
+        }
+
+        //自定义事件-用户修改信息
+        event('CustomEventListener', ['user_change_info', [
+            'uid' => $uid,
+            'nickname' => $info['nickname'],
+            'phone' => $info['phone'],
+            'avatar' => $info['avatar'],
+            'add_time' => date('Y-m-d H:i:s', $info['add_time']),
+            'user_type' => $info['user_type'],
+        ]]);
+
+        return true;
+    }
+
+    /**
      * 获取推广人排行
      * @param $data 查询条件
      * @return array
