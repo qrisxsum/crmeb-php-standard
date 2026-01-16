@@ -98,4 +98,15 @@ class StoreCategory extends BaseModel
     {
         if ($value) $query->whereIn('id', is_array($value) ? $value : (string)$value);
     }
+
+    /**
+     * SEO标题搜索器
+     * @param Model $query
+     * @param $value
+     * @param $data
+     */
+    public function searchSeoTitleAttr($query, $value, $data)
+    {
+        if ($value !== '') $query->where('seo_title', 'like', '%' . $value . '%');
+    }
 }

@@ -90,7 +90,7 @@ class StoreCategoryDao extends BaseDao
      */
     public function getCategory()
     {
-        return $this->getModel()->with('children')->where('is_show', 1)->where('pid', 0)->order('sort desc,id desc')->hidden(['add_time', 'is_show', 'sort', 'children.sort', 'children.add_time', 'children.pid', 'children.is_show'])->select()->toArray();
+        return $this->getModel()->with('children')->where('is_show', 1)->where('pid', 0)->field('id,cate_name,pid,pic,big_pic,seo_title,seo_keywords,seo_description')->order('sort desc,id desc')->hidden(['add_time', 'is_show', 'sort', 'children.sort', 'children.add_time', 'children.pid', 'children.is_show'])->select()->toArray();
     }
 
     /**
