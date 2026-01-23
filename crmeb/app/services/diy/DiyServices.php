@@ -501,4 +501,105 @@ class DiyServices extends BaseServices
         $QrcodeService = app()->make(QrcodeServices::class);
         return $QrcodeService->getRoutineQrcodePath($id, 0, 6, [], false);
     }
+
+    /**
+     * 获取底部预留模块配置
+     * @return array
+     */
+    public function getPageBottomConfig(): array
+    {
+        $value = $this->dao->value(['template_name' => 'page_bottom', 'type' => 1], 'value');
+
+        // 默认配置
+        $defaultConfig = [
+            'notice' => [
+                'enabled' => false,
+                'list' => []
+            ],
+            'navLinks' => [
+                'enabled' => true,
+                'list' => [
+                    ['name' => 'ホーム', 'icon' => 'home', 'link' => '/pages/index/index'],
+                    ['name' => 'カテゴリー覧', 'icon' => 'category', 'link' => '/pages/goods_cate/goods_cate'],
+                    ['name' => 'カート', 'icon' => 'cart', 'link' => '/pages/order_addcart/order_addcart'],
+                    ['name' => 'マイページ', 'icon' => 'user', 'link' => '/pages/user/index']
+                ]
+            ],
+            'copyright' => [
+                'enabled' => true,
+                'text' => 'Copyright © 2012-2024 Example.co.jp | All Rights Reserved.'
+            ],
+            'backTop' => [
+                'enabled' => true
+            ]
+        ];
+
+        if (!$value) {
+            return $defaultConfig;
+        }
+
+        $config = json_decode($value, true);
+        if (!$config) {
+            return $defaultConfig;
+        }
+
+        // 确保 enabled 字段是布尔类型
+        if (isset($config['notice']['enabled'])) {
+            $config['notice']['enabled'] = (bool)$config['notice']['enabled'];
+        }
+        if (isset($config['navLinks']['enabled'])) {
+            $config['navLinks']['enabled'] = (bool)$config['navLinks']['enabled'];
+        }
+        if (isset($config['copyright']['enabled'])) {
+            $config['copyright']['enabled'] = (bool)$config['copyright']['enabled'];
+        }
+        if (isset($config['backTop']['enabled'])) {
+            $config['backTop']['enabled'] = (bool)$config['backTop']['enabled'];
+        }
+
+        return $config;
+    }
+
+    /**
+     * 保存底部预留模块配置
+     * @param array $data
+     * @return bool
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\DbException
+     * @throws \think\db\exception\ModelNotFoundException
+     */
+    public function savePageBottomConfig(array $data): bool
+    {
+        $info = $this->dao->get(['template_name' => 'page_bottom', 'type' => 1]);
+
+        if (!$info) {
+            // 创建新记录
+            $this->dao->save([
+                'name' => '底部预留模块',
+                'template_name' => 'page_bottom',
+                'type' => 1,
+                'value' => json_encode($data, JSON_UNESCAPED_UNICODE),
+                'add_time' => time(),
+                'update_time' => time(),
+                'version' => uniqid(),
+                'is_del' => 0
+            ]);
+            return true;
+        }
+
+        $info->value = json_encode($data, JSON_UNESCAPED_UNICODE);
+        $info->update_time = time();
+        $info->version = uniqid();
+
+        return $info->save();
+    }
+
+    /**
+     * 获取底部预留模块版本号
+     * @return string
+     */
+    public function getPageBottomVersion(): string
+    {
+        return $this->dao->value(['template_name' => 'page_bottom', 'type' => 1], 'version') ?: '';
+    }
 }

@@ -269,6 +269,7 @@
 				</view>
 				<image :src="copyRightPic" alt="" class="support"></image>
 				<view class="uni-p-b-98"></view>
+				<pageBottom></pageBottom>
 			</scroll-view>
 			<editUserModal :isShow="editModal" @closeEdit="closeEdit" @editSuccess="editSuccess"></editUserModal>
 		</view>
@@ -289,11 +290,13 @@ import dayjs from '@/plugin/dayjs/dayjs.min.js';
 import Routine from '@/libs/routine';
 import colors from '@/mixins/color';
 import pageFooter from '@/components/pageFooter/index.vue';
+import pageBottom from '@/components/pageBottom/index.vue';
 import { getCustomer } from '@/utils/index.js';
 import editUserModal from '@/components/eidtUserModal/index.vue';
 export default {
 	components: {
 		pageFooter,
+		pageBottom,
 		editUserModal
 	},
 	// computed: mapGetters(['isLogin','cartNum']),

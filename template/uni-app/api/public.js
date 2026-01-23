@@ -225,6 +225,25 @@ export function getNavigation(data) {
 		noAuth: true
 	});
 }
+
+/**
+ * 获取底部预留模块配置
+ */
+export function getPageBottom() {
+	return request.get("page_bottom", {}, {
+		noAuth: true
+	});
+}
+
+/**
+ * 获取底部预留模块版本号
+ */
+export function getPageBottomVersion() {
+	return request.get("page_bottom_version", {}, {
+		noAuth: true
+	});
+}
+
 export function getSubscribe() {
 	return request.get("subscribe", {}, {
 		noAuth: true

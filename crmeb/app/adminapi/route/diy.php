@@ -73,6 +73,10 @@ Route::group('diy', function () {
     Route::post('open_adv/add', 'v1.diy.Diy/openAdvAdd')->option(['real_name' => '保存开屏广告']);
     //推荐商品
     Route::get('groom_list/:type', 'v1.diy.Diy/getGroomList')->option(['real_name' => '推荐商品']);
+    //获取底部预留模块配置
+    Route::get('get_page_bottom_config', 'v1.diy.Diy/getPageBottomConfig')->option(['real_name' => '获取底部预留模块配置']);
+    //保存底部预留模块配置
+    Route::post('save_page_bottom_config', 'v1.diy.Diy/savePageBottomConfig')->option(['real_name' => '保存底部预留模块配置']);
 
     /** 系统链接管理 */
     Route::get('link/category', 'v1.diy.PageLink/getLinkCategory')->option(['real_name' => '获取链接分类']);
