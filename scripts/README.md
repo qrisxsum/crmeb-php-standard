@@ -22,3 +22,13 @@
    - `bash scripts/publish-pc.sh`
 
 该脚本会把 `template/pc/dist/` 同步到 `crmeb/public/home/`。
+
+## Admin（Vue CLI）
+
+1. 构建：
+   - `cd template/admin && npm i && npm run build`
+   - （服务器推荐）`cd template/admin && docker run --rm -t -v "$PWD":/app -w /app node:16-bullseye bash -lc "npm ci --legacy-peer-deps && npm run build"`
+2. 发布：
+   - `bash scripts/publish-admin.sh`
+
+该脚本会把 `template/admin/dist/` 同步到 `crmeb/public/admin/`。

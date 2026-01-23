@@ -453,7 +453,8 @@ export default {
             });
           },
           error: (e) => {
-            this.$message.error(e.msg);
+            const msg = (e && (e.msg || e.message)) || '视频上传失败';
+            this.$message.error(msg);
           },
           uploading: (chunk, allChunk) => {
             this.videoIng = true;

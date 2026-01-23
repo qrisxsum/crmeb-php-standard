@@ -25,10 +25,14 @@ export const uploadByPieces = ({ file, pieceSize = 2, success, error, uploading 
   };
   // 针对每个文件进行chunk处理
   const readChunkMD5 = async () => {
-    // 针对单个文件进行chunk上传
-    for (var i = 0; i < chunkCount; i++) {
-      const { chunk } = getChunkInfo(file, i, chunkSize);
-      await uploadChunk({ chunk, currentChunk: i, chunkCount });
+    try {
+      // 针对单个文件进行chunk上传
+      for (var i = 0; i < chunkCount; i++) {
+        const { chunk } = getChunkInfo(file, i, chunkSize);
+        await uploadChunk({ chunk, currentChunk: i, chunkCount });
+      }
+    } catch (e) {
+      // uploadChunk 内已处理 error 回调，这里避免未捕获的 Promise rejection
     }
   };
   const uploadChunk = (chunkInfo) => {
@@ -50,23 +54,26 @@ export const uploadByPieces = ({ file, pieceSize = 2, success, error, uploading 
       fetchForm.append('md5', fileMD5);
       upload(fetchForm, config)
         .then((res) => {
-          if (res.data.code == 1) {
+          const code = Number(res?.data?.code);
+          if (code === 1) {
             // // 结合不同项目 将成功的信息返回出去
             // 下面如果在项目中没有用到可以不用打开注释
-            uploading(chunkInfo.currentChunk + 1, chunkInfo.chunkCount);
+            uploading && uploading(chunkInfo.currentChunk + 1, chunkInfo.chunkCount);
             resolver(true);
-          } else if (res.data.code == 2) {
-            if (chunkInfo.currentChunk < chunkInfo.chunkCount - 1) {
-            } else {
-              // 当总数大于等于分片个数的时候
-              if (chunkInfo.currentChunk + 1 == chunkInfo.chunkCount) {
-                success(res.data);
-              }
-            }
+            return;
           }
+          if (code === 2) {
+            if (chunkInfo.currentChunk + 1 === chunkInfo.chunkCount) {
+              success && success(res.data);
+            }
+            resolver(true);
+            return;
+          }
+          reject(res);
         })
         .catch((e) => {
           error && error(e);
+          reject(e);
         });
     });
   };
